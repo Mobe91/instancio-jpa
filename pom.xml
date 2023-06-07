@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.mobecker</groupId>
+    <artifactId>instancio-jpa</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <modules>
+        <module>javax</module>
+        <module>jakarta</module>
+        <module>testsuite</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <version.instancio>2.15.0</version.instancio>
+        <version.blaze-common-utils>0.1.21</version.blaze-common-utils>
+        <version.findbugs-jsr305>3.0.2</version.findbugs-jsr305>
+        <version.junit>5.9.3</version.junit>
+        <version.assertj>3.24.2</version.assertj>
+        <version.javax-jpa>2.2</version.javax-jpa>
+        <version.jakarta-jpa>3.1.0</version.jakarta-jpa>
+        <version.hibernate5>5.6.15.Final</version.hibernate5>
+        <version.hibernate6>6.2.4.Final</version.hibernate6>
+        <version.h2>2.1.214</version.h2>
+        <version.lombok>1.18.28</version.lombok>
+        <version.ant-contrib>1.0b3</version.ant-contrib>
+        <version.org-eclipse-transformer-cli>0.2.0</version.org-eclipse-transformer-cli>
+
+        <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
+        <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
+        <version.maven-surefire-plugin>3.1.0</version.maven-surefire-plugin>
+        <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
+        <version.build-helper-maven-plugin>3.4.0</version.build-helper-maven-plugin>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${version.maven-source-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>${version.maven-antrun-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${version.maven-surefire-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${version.maven-jar-plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${version.build-helper-maven-plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
