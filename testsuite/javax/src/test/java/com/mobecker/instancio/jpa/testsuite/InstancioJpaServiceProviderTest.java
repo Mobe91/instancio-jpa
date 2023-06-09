@@ -28,7 +28,7 @@ import org.instancio.settings.Settings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class InstancioJpaServiceProviderTest {
+class InstancioJpaServiceProviderTest {
 
     private static EntityManagerFactory emf;
 
@@ -38,7 +38,7 @@ public class InstancioJpaServiceProviderTest {
     }
 
     @Test
-    public void testIdSequence() {
+    void testIdSequence() {
         // Given
         Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
 

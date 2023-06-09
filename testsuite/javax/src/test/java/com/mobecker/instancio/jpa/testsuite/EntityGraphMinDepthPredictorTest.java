@@ -15,7 +15,10 @@
  */
 package com.mobecker.instancio.jpa.testsuite;
 
+import static com.mobecker.instancio.jpa.util.JpaProviderVersionUtil.isHibernate5OrOlder;
+import static com.mobecker.instancio.jpa.util.JpaProviderVersionUtil.isHibernate6OrNewer;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.mobecker.instancio.jpa.EntityGraphMinDepthPredictor;
 import java.util.HashSet;
@@ -36,7 +39,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class EntityGraphMinDepthPredictorTest {
+class EntityGraphMinDepthPredictorTest {
 
     private static EntityManagerFactory emf;
     private static EntityGraphMinDepthPredictor entityGraphMinDepthPredictor;
@@ -107,16 +110,18 @@ public class EntityGraphMinDepthPredictorTest {
     }
 
     @Test
-    void embeddable_optionalComponentOverride() {
+    void embeddable_nestedOptionalComponentByOverride_hibernate6() {
+        assumeTrue(isHibernate6OrNewer());
         // When
-        int predictedMaxDepth = entityGraphMinDepthPredictor.predictRequiredDepth(EmbeddableParent3.class);
+        int predictedMaxDepth = entityGraphMinDepthPredictor.predictRequiredDepth(EmbeddableParent4.class);
 
         // Then
         assertThat(predictedMaxDepth).isEqualTo(2);
     }
 
     @Test
-    void embeddable_nestedOptionalComponentByOverride() {
+    void embeddable_nestedOptionalComponentByOverride_hibernate5() {
+        assumeTrue(isHibernate5OrOlder());
         // When
         int predictedMaxDepth = entityGraphMinDepthPredictor.predictRequiredDepth(EmbeddableParent4.class);
 
@@ -195,7 +200,6 @@ public class EntityGraphMinDepthPredictorTest {
         @Id
         private Long id;
         @Embedded
-        @AttributeOverride(name = "name", column = @Column(nullable = false))
         private EmbeddableWithMandatoryComponent embeddable;
     }
 
@@ -205,17 +209,6 @@ public class EntityGraphMinDepthPredictorTest {
     public static class EmbeddableWithMandatoryComponent {
         @Column(nullable = false)
         private String name;
-    }
-
-    @Entity
-    @Getter
-    @Setter
-    public static class EmbeddableParent3 {
-        @Id
-        private Long id;
-        @Embedded
-        @AttributeOverride(name = "name", column = @Column(nullable = false))
-        private EmbeddableWithOptionalComponent embeddable;
     }
 
     @Embeddable

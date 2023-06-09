@@ -15,11 +15,13 @@
  */
 package com.mobecker.instancio.jpa;
 
+import com.mobecker.instancio.jpa.util.JpaProviderVersionUtil;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.Type;
 
 public class EntityGraphMinDepthPredictor {
 
@@ -42,13 +44,13 @@ public class EntityGraphMinDepthPredictor {
 
         ManagedType<?> managedType = metamodel.managedType(entityClass);
         int maxDepth = managedType.getAttributes().stream()
-            .filter(attr -> attr instanceof SingularAttribute && !((SingularAttribute<?, ?>) attr).isOptional())
+            .filter(attr -> ignoreAttributeNullability(managedType)
+                || attr instanceof SingularAttribute && !((SingularAttribute<?, ?>) attr).isOptional())
             .mapToInt(attr -> {
                 int depth;
                 switch (attr.getPersistentAttributeType()) {
                     case ONE_TO_ONE:
                     case MANY_TO_ONE: depth = 1 + predictRequiredMaxDepth0(attr.getJavaType(), visited); break;
-                    // TODO: Hibernate's metamodel is buggy and indeterministic when it comes to embeddable nullability. We probably need to handle that manually. Also consider attribute overrides.
                     case EMBEDDED: depth = 1 + predictRequiredMaxDepth0(attr.getJavaType(), visited); break;
                     case BASIC: depth = 1; break;
                     default: depth = 0;
@@ -58,5 +60,18 @@ public class EntityGraphMinDepthPredictor {
 
         visited.remove(entityClass);
         return maxDepth;
+    }
+
+    private static boolean ignoreAttributeNullability(ManagedType<?> attributeContainer) {
+        return JpaProviderVersionUtil.isHibernate5OrOlder()
+            // The nullability information for attributes in embeddables is not always correct (at least for Hibernate 5)
+            && (attributeContainer.getPersistenceType() == Type.PersistenceType.EMBEDDABLE
+            // Hibernate 5's metamodel is buggy / indeterministic when it comes to attributes of mapped superclasses.
+            // Assuming I have a MappedSuperclass A with a nullable attribute p0, and two entities B and C that inherit from it.
+            // B overrides the nullability of p0 using @AttributeOverride with nullable=false.
+            // C does not override the nullability, therefore effectively nullable=true.
+            // In this case, it depends on the order in which B and C are processed during the construction of the
+            // metamodel whether metamodel.managedType(A.class).getAttribute("p0").isOptional() returns true or false.
+            || attributeContainer.getPersistenceType() == Type.PersistenceType.MAPPED_SUPERCLASS);
     }
 }

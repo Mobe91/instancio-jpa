@@ -32,7 +32,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class EntityGraphShrinkerTest {
+class EntityGraphShrinkerTest {
 
     private static EntityManagerFactory emf;
     private static EntityGraphShrinker entityGraphShrinker;
@@ -67,7 +67,7 @@ public class EntityGraphShrinkerTest {
     }
 
     @Test
-    public void mandatoryManyToOne_set() {
+    void mandatoryManyToOne_set() {
         // Given
         Order order = new Order();
         OrderItem orderItem = new OrderItem();

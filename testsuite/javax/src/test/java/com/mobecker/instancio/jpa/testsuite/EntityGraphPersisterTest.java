@@ -45,12 +45,11 @@ import org.instancio.junit.Seed;
 import org.instancio.settings.Settings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(InstancioExtension.class)
-public class EntityGraphPersisterTest {
+class EntityGraphPersisterTest {
 
     private static EntityManagerFactory emf;
     private EntityManager entityManager;
@@ -68,7 +67,7 @@ public class EntityGraphPersisterTest {
     }
 
     @Test
-    public void testFlatOrder() {
+    void testFlatOrder() {
         // Given
         FlatOrder order = Instancio.of(jpaModel(FlatOrder.class, emf.getMetamodel()).build()).create();
 
@@ -83,7 +82,7 @@ public class EntityGraphPersisterTest {
     }
 
     @Test
-    public void testOrder() {
+    void testOrder() {
         // Given
         Order order = Instancio.of(jpaModel(Order.class, emf.getMetamodel()).build()).create();
 
@@ -98,7 +97,7 @@ public class EntityGraphPersisterTest {
     }
 
     @Test
-    public void testOrderWithDescription() {
+    void testOrderWithDescription() {
         // Given
         OrderWithDescription1 order = Instancio.of(jpaModel(OrderWithDescription1.class, emf.getMetamodel()).build())
             .set(fields().named("id"), null)
@@ -117,7 +116,7 @@ public class EntityGraphPersisterTest {
 
     @Test
     @Seed(4407964936668837108L)
-    public void useJpaNullabilitySetting() {
+    void useJpaNullabilitySetting() {
         // Given
         Model<OrderWithDescription> model = jpaModel(OrderWithDescription.class, emf.getMetamodel())
                 .withSettings(Settings.defaults().set(JpaKeys.USE_JPA_NULLABILITY, false))
