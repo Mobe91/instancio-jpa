@@ -25,6 +25,7 @@ import static javax.persistence.metamodel.Type.PersistenceType.MAPPED_SUPERCLASS
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
@@ -63,13 +64,22 @@ public class EntityGraphShrinker {
             } else if (attr instanceof PluralAttribute<?, ?, ?>) {
                 PluralAttribute<?, ?, ?> pluralAttribute = (PluralAttribute<?, ?, ?>) attr;
                 if (pluralAttribute.getCollectionType() == PluralAttribute.CollectionType.MAP) {
-                    // TODO: add map support
-                    throw new UnsupportedOperationException();
+                    Map<?, ?> attrMap = (Map<?, ?>) attrValue;
+                    if (attrMap != null) {
+                        Iterator<?> iterator = attrMap.values().iterator();
+                        while (iterator.hasNext()) {
+                            Object attrMapValue = iterator.next();
+                            shrink0(attrMapValue, visited);
+                            if (!isValid(attrMapValue)) {
+                                iterator.remove();
+                            }
+                        }
+                    }
                 } else if (pluralAttribute.getElementType().getPersistenceType() == ENTITY
                     || pluralAttribute.getElementType().getPersistenceType() == EMBEDDABLE) {
-                    Collection<?> attrCollectionValue = (Collection<?>) attrValue;
-                    if (attrCollectionValue != null) {
-                        Iterator<?> iterator = attrCollectionValue.iterator();
+                    Collection<?> attrCollection = (Collection<?>) attrValue;
+                    if (attrCollection != null) {
+                        Iterator<?> iterator = attrCollection.iterator();
                         while (iterator.hasNext()) {
                             Object attrCollectionElement = iterator.next();
                             shrink0(attrCollectionElement, visited);

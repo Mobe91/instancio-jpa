@@ -20,7 +20,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.mobecker.instancio.jpa.EntityGraphShrinker;
+import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
@@ -28,6 +31,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Persistence;
+import lombok.Getter;
+import lombok.Setter;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -78,51 +83,59 @@ class EntityGraphShrinkerTest {
         assertThat(orderItem.getOrder()).isEqualTo(order);
     }
 
+    @Test
+    void oneToMany_mapWithInvalidElements() {
+        // Given
+        Order order = new Order();
+        OrderItem orderItem1 = new OrderItem();
+        OrderItem orderItem2 = new OrderItem();
+        orderItem2.setOrder(order);
+        order.getOrderItems().add(orderItem1);
+        order.getOrderItems().add(orderItem2);
+
+        // When
+        entityGraphShrinker.shrink(order);
+
+        // Then
+        assertThat(order.getOrderItems()).containsExactly(orderItem2);
+    }
+
+    @Test
+    void oneToMany_setWithInvalidElements() {
+        // Given
+        Order order = new Order();
+        OrderItem orderItem1 = new OrderItem();
+        OrderItem orderItem2 = new OrderItem();
+        orderItem2.setOrder(order);
+        order.getOrderItemsById().put(orderItem1.getId(), orderItem1);
+        order.getOrderItemsById().put(orderItem2.getId(), orderItem2);
+
+        // When
+        entityGraphShrinker.shrink(order);
+
+        // Then
+        assertThat(order.getOrderItemsById()).containsExactly(new AbstractMap.SimpleEntry<>(orderItem2.getId(), orderItem2));
+    }
+
     @Entity
+    @Getter
+    @Setter
     public static class Order {
         @Id
         private Long id;
         @OneToMany
         private Set<OrderItem> orderItems = new HashSet<>(0);
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public Set<OrderItem> getOrderItems() {
-            return orderItems;
-        }
-
-        public void setOrderItems(Set<OrderItem> orderItems) {
-            this.orderItems = orderItems;
-        }
+        @OneToMany
+        private Map<Long, OrderItem> orderItemsById = new HashMap<>(0);
     }
 
     @Entity
+    @Getter
+    @Setter
     public static class OrderItem {
         @Id
         private Long id;
         @ManyToOne(optional = false)
         private Order order;
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public Order getOrder() {
-            return order;
-        }
-
-        public void setOrder(Order order) {
-            this.order = order;
-        }
     }
 }

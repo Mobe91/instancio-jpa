@@ -24,19 +24,32 @@ import static javax.persistence.metamodel.Attribute.PersistentAttributeType.MANY
 import static javax.persistence.metamodel.Attribute.PersistentAttributeType.ONE_TO_MANY;
 import static javax.persistence.metamodel.Attribute.PersistentAttributeType.ONE_TO_ONE;
 
+import com.mobecker.instancio.jpa.util.JpaMetamodelUtil;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import javax.persistence.JoinColumn;
+import javax.persistence.MapKey;
+import javax.persistence.MapKeyJoinColumn;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.ManagedType;
+import javax.persistence.metamodel.MapAttribute;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SingularAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EntityGraphAssociationFixer {
 
+    private static final Logger LOG = LoggerFactory.getLogger(EntityGraphAssociationFixer.class);
     private final Metamodel metamodel;
 
     public EntityGraphAssociationFixer(Metamodel metamodel) {
@@ -57,6 +70,7 @@ public class EntityGraphAssociationFixer {
         entityType.getAttributes().stream()
             .filter(Attribute::isAssociation)
             .forEach(attr -> {
+                LOG.trace("Process attribute {} of entity {}", attr, entity);
                 if (attr.getPersistentAttributeType() == MANY_TO_ONE) {
                     // we need to add the "entity" to the corresponding OneToMany
                     fixManyToOneAssociation(entity, attr);
@@ -74,8 +88,13 @@ public class EntityGraphAssociationFixer {
                 }
                 Object attributeValue = resolveAttributeValue(entity, attr);
                 if (attributeValue != null) {
-                    if (attributeValue instanceof Collection<?>) {
-                        ((Collection<?>) attributeValue).forEach(collectionElement -> fixAssociations0(collectionElement, visited));
+                    if (attr.isCollection()) {
+                        PluralAttribute<?, ?, ?> pluralAttr = (PluralAttribute<?, ?, ?>) attr;
+                        if (pluralAttr.getCollectionType() == PluralAttribute.CollectionType.MAP) {
+                            ((Map<?, ?>) attributeValue).forEach((key, value) -> fixAssociations0(value, visited));
+                        } else {
+                            ((Collection<?>) attributeValue).forEach(collectionElement -> fixAssociations0(collectionElement, visited));
+                        }
                     } else {
                         fixAssociations0(attributeValue, visited);
                     }
@@ -89,7 +108,7 @@ public class EntityGraphAssociationFixer {
         if (associationEndValue != null) {
             EntityType<Y> associationEndType = metamodel.entity(associationStart.getJavaType());
             findOneToManyWithMappedBy(associationEndType, associationStart.getName())
-                .ifPresent(associationEnd -> {
+                .forEach(associationEnd -> {
                     populateCollectionOrMap(associationEndValue, associationEnd, associationStartValue);
                 });
         }
@@ -107,7 +126,7 @@ public class EntityGraphAssociationFixer {
                         setAttributeValue(associationEndValue, associationEnd, associationStartValue));
             } else {
                 findOneToOneWithMappedBy(associationEndType, associationStart.getName())
-                    .ifPresent(associationEnd ->
+                    .forEach(associationEnd ->
                         setAttributeValue(associationEndValue, associationEnd, associationStartValue));
             }
         }
@@ -115,40 +134,72 @@ public class EntityGraphAssociationFixer {
 
     private <X, Y, E> void fixOneToManyAssociation(Object associationStartValue, PluralAttribute<X, Y, E> associationStart) {
         if (associationStart.getCollectionType() == PluralAttribute.CollectionType.MAP) {
-            throw new UnsupportedOperationException();
-        }
-        Collection<?> associationEndCollectionValue = (Collection<?>) resolveAttributeValue(associationStartValue, associationStart);
-        if (associationEndCollectionValue != null) {
-            String mappedByOnStartSide = resolveMappedBy(associationStart.getJavaMember());
-            if (mappedByOnStartSide != null) {
-                EntityType<E> associationEndType = metamodel.entity(associationStart.getElementType().getJavaType());
-                findManyToOneWithAttributeName(associationEndType, mappedByOnStartSide)
-                    .ifPresent(associationEnd ->
-                        associationEndCollectionValue.forEach(associationEndElementValue ->
-                            setAttributeValue(associationEndElementValue, associationEnd, associationStartValue)));
+            Map<?, ?> associationEndMap = (Map<?, ?>) resolveAttributeValue(associationStartValue, associationStart);
+            if (associationEndMap != null) {
+                String mappedByOnStartSide = resolveMappedBy(associationStart.getJavaMember());
+                if (mappedByOnStartSide != null) {
+                    LOG.trace("Fixing oneToMany for owned side map attribute {} in entity {}", associationStart, associationStartValue);
+                    EntityType<E> associationEndType = metamodel.entity(associationStart.getElementType().getJavaType());
+                    findManyToOneWithAttributeName(associationEndType, mappedByOnStartSide)
+                        .ifPresent(associationEnd ->
+                            associationEndMap.forEach((associationEndElementKey, associationEndElementValue) ->
+                                setAttributeValue(associationEndElementValue, associationEnd, associationStartValue)));
+                }
+            }
+        } else {
+            Collection<?> associationEndCollection = (Collection<?>) resolveAttributeValue(associationStartValue, associationStart);
+            if (associationEndCollection != null) {
+                String mappedByOnStartSide = resolveMappedBy(associationStart.getJavaMember());
+                if (mappedByOnStartSide != null) {
+                    LOG.trace("Fixing oneToMany for owned side collection attribute {} in entity {}", associationStart, associationStartValue);
+                    EntityType<E> associationEndType = metamodel.entity(associationStart.getElementType().getJavaType());
+                    findManyToOneWithAttributeName(associationEndType, mappedByOnStartSide)
+                        .ifPresent(associationEnd ->
+                            associationEndCollection.forEach(associationEndElementValue ->
+                                setAttributeValue(associationEndElementValue, associationEnd, associationStartValue)));
+                }
             }
         }
     }
 
     private <X, Y, E> void fixManyToManyAssociation(Object associationStartValue, PluralAttribute<X, Y, E> associationStart) {
         if (associationStart.getCollectionType() == PluralAttribute.CollectionType.MAP) {
-            throw new UnsupportedOperationException();
-        }
-        Collection<?> associationEndCollectionValue = (Collection<?>) resolveAttributeValue(associationStartValue, associationStart);
-        if (associationEndCollectionValue != null) {
-            String mappedByOnStartSide = resolveMappedBy(associationStart.getJavaMember());
-            EntityType<E> associationEndType = metamodel.entity(associationStart.getElementType().getJavaType());
-            if (mappedByOnStartSide != null) {
-                findManyToManyWithAttributeName(associationEndType, mappedByOnStartSide)
-                    .ifPresent(associationEnd ->
-                        associationEndCollectionValue.forEach(associationEndElementValue ->
-                            populateCollectionOrMap(associationEndElementValue, associationEnd, associationStartValue)));
-
-            } else {
-                findManyToManyWithMappedBy(associationEndType, associationStart.getName())
-                    .ifPresent(associationEnd ->
-                        associationEndCollectionValue.forEach(associationEndElementValue ->
-                            populateCollectionOrMap(associationEndElementValue, associationEnd, associationStartValue)));
+            Map<?, ?> associationEndMap = (Map<?, ?>) resolveAttributeValue(associationStartValue, associationStart);
+            if (associationEndMap != null) {
+                String mappedByOnStartSide = resolveMappedBy(associationStart.getJavaMember());
+                EntityType<E> associationEndType = metamodel.entity(associationStart.getElementType().getJavaType());
+                if (mappedByOnStartSide != null) {
+                    LOG.trace("Fixing manyToMany for owned side map attribute {} in entity {}", associationStart, associationStartValue);
+                    findManyToManyWithAttributeName(associationEndType, mappedByOnStartSide)
+                        .ifPresent(associationEnd ->
+                            associationEndMap.forEach((associationEndElementKey, associationEndElementValue) ->
+                                populateCollectionOrMap(associationEndElementValue, associationEnd, associationStartValue)));
+                } else {
+                    LOG.trace("Fixing manyToMany for owning side map attribute {} in entity {}", associationStart, associationStartValue);
+                    findManyToManyWithMappedBy(associationEndType, associationStart.getName())
+                        .forEach(associationEnd ->
+                            associationEndMap.values().forEach(associationEndElementValue ->
+                                populateCollectionOrMap(associationEndElementValue, associationEnd, associationStartValue)));
+                }
+            }
+        } else {
+            Collection<?> associationEndCollection = (Collection<?>) resolveAttributeValue(associationStartValue, associationStart);
+            if (associationEndCollection != null) {
+                String mappedByOnStartSide = resolveMappedBy(associationStart.getJavaMember());
+                EntityType<E> associationEndType = metamodel.entity(associationStart.getElementType().getJavaType());
+                if (mappedByOnStartSide != null) {
+                    LOG.trace("Fixing manyToMany for owned side collection attribute {} in entity {}", associationStart, associationStartValue);
+                    findManyToManyWithAttributeName(associationEndType, mappedByOnStartSide)
+                        .ifPresent(associationEnd ->
+                            associationEndCollection.forEach(associationEndElementValue ->
+                                populateCollectionOrMap(associationEndElementValue, associationEnd, associationStartValue)));
+                } else {
+                    LOG.trace("Fixing manyToMany for owning side collection attribute {} in entity {}", associationStart, associationStartValue);
+                    findManyToManyWithMappedBy(associationEndType, associationStart.getName())
+                        .forEach(associationEnd ->
+                            associationEndCollection.forEach(associationEndElementValue ->
+                                populateCollectionOrMap(associationEndElementValue, associationEnd, associationStartValue)));
+                }
             }
         }
     }
@@ -156,47 +207,110 @@ public class EntityGraphAssociationFixer {
     private static Collection<?> initializeCollection(Object entity, PluralAttribute<?, ?, ?> attribute) {
         Collection<?> newCollection;
         switch (attribute.getCollectionType()) {
-            case SET: newCollection = new HashSet<>(); break;
+            case SET: newCollection = new HashSet<>(0); break;
             case LIST:
-            case COLLECTION: newCollection = new ArrayList<>(); break;
-            case MAP: throw new UnsupportedOperationException(); // TODO: add map support
+            case COLLECTION: newCollection = new ArrayList<>(0); break;
             default: throw new IllegalStateException("Unknown collection type '" + attribute.getCollectionType() + "'.");
         }
         setAttributeValue(entity, attribute, newCollection);
         return newCollection;
     }
 
-    private static void populateCollectionOrMap(
+    /**
+     * Adds newElement to the given collection attribute on the given entity.
+     * @param entity
+     * @param attribute
+     * @param newElement
+     */
+    private void populateCollectionOrMap(
         Object entity, PluralAttribute<?, ?, ?> attribute, Object newElement
     ) {
         if (attribute.getCollectionType() == PluralAttribute.CollectionType.MAP) {
-            throw new UnsupportedOperationException();
+            Map<Object, Object> reverseAssociationStartValue
+                = (Map<Object, Object>) resolveAttributeValue(entity, attribute);
+            if (reverseAssociationStartValue == null) {
+                reverseAssociationStartValue = new HashMap<>(0);
+            }
+            Object mapKey = extractMapKey((MapAttribute<?, ?, ?>) attribute, newElement);
+            if (mapKey == null) {
+                LOG.debug("Map key resolved to null for map value {}", newElement);
+            } else {
+                LOG.debug("Put ({}, {}) to map attribute {} in entity {}", mapKey, newElement, attribute, entity);
+                reverseAssociationStartValue.put(mapKey, newElement);
+            }
         } else {
             Collection<Object> reverseAssociationStartValue
                 = (Collection<Object>) resolveAttributeValue(entity, attribute);
             if (reverseAssociationStartValue == null) {
                 reverseAssociationStartValue = (Collection<Object>) initializeCollection(entity, attribute);
             }
-            reverseAssociationStartValue.add(newElement);
+            if (!reverseAssociationStartValue.contains(newElement)){
+                LOG.debug("Add {} to collection attribute {} in entity {}", newElement, attribute, entity);
+                reverseAssociationStartValue.add(newElement);
+            }
         }
     }
 
-    private static <T> Optional<PluralAttribute<? super T, ?, ?>> findOneToManyWithMappedBy(
+    private Object extractMapKey(MapAttribute<?, ?, ?> attribute, Object mapValue) {
+        // we need to extract based on @MapKeyJoinColumn - for that we need to match column names.
+        EntityType<?> mapValueEntityType = metamodel.entity(mapValue.getClass());
+        MapKeyJoinColumn mapKeyJoinColumn = JpaMetamodelUtil.getAnnotation(attribute, MapKeyJoinColumn.class);
+        if (mapKeyJoinColumn != null) {
+            String mapKeyJoinColumnName = mapKeyJoinColumn.name() == null ? attribute.getName() + "_KEY" : mapKeyJoinColumn.name();
+            // @MapKeyJoinColumn requires us to map colum names. This would require a deeper integration with the
+            // JPA provider, and so we rely on @JoinColumn annotation matching for now.
+            return mapValueEntityType.getAttributes().stream()
+                .filter(attr -> {
+                    JoinColumn joinColumn = JpaMetamodelUtil.getAnnotation(attr, JoinColumn.class);
+                    return joinColumn != null && mapKeyJoinColumnName.equals(joinColumn.name());
+                })
+                .filter(attr -> attr.getJavaType().equals(attribute.getKeyJavaType()))
+                .findAny()
+                .map(keyAttribute -> resolveAttributeValue(mapValue, keyAttribute))
+                .orElse(null);
+        }
+        MapKey mapKey = JpaMetamodelUtil.getAnnotation(attribute, MapKey.class);
+        if (mapKey != null && !mapKey.name().isEmpty()) {
+            return mapValueEntityType.getAttributes().stream().filter(attr -> mapKey.name().equals(attr.getName()))
+                .findAny()
+                .map(keyAttribute -> resolveAttributeValue(mapValue, keyAttribute))
+                .orElse(null);
+        }
+        if (mapValueEntityType.hasSingleIdAttribute()) {
+            SingularAttribute<?, ?> idAttribute = JpaMetamodelUtil.getSingleIdAttribute(mapValueEntityType);
+            return resolveAttributeValue(mapValue, idAttribute);
+        } else {
+            return initializeIdClass(mapValueEntityType, mapValue);
+        }
+    }
+
+    private Object initializeIdClass(EntityType<?> entityType, Object entity) {
+        Object idClassInstance;
+        try {
+            idClassInstance = entityType.getIdType().getJavaType().getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+        entityType.getIdClassAttributes().forEach(attr -> setAttributeValue(idClassInstance, attr, resolveAttributeValue(entity, attr)));
+        return idClassInstance;
+    }
+
+    private static <T> Iterable<PluralAttribute<? super T, ?, ?>> findOneToManyWithMappedBy(
         ManagedType<T> managedType, String mappedBy
     ) {
         return managedType.getPluralAttributes().stream()
             .filter(attr -> attr.getPersistentAttributeType() == ONE_TO_MANY)
             .filter(attr -> mappedBy.equals(resolveMappedBy(attr.getJavaMember())))
-            .findAny();
+            .collect(Collectors.toList());
     }
 
-    private static <T> Optional<Attribute<? super T, ?>> findOneToOneWithMappedBy(
+    private static <T> Iterable<Attribute<? super T, ?>> findOneToOneWithMappedBy(
         ManagedType<T> managedType, String mappedBy
     ) {
         return managedType.getAttributes().stream()
             .filter(attr -> attr.getPersistentAttributeType() == ONE_TO_ONE)
             .filter(attr -> mappedBy.equals(resolveMappedBy(attr.getJavaMember())))
-            .findAny();
+            .collect(Collectors.toList());
     }
 
     private static <T> Optional<Attribute<? super T, ?>> findOneToOneWithAttributeName(
@@ -217,13 +331,13 @@ public class EntityGraphAssociationFixer {
             .findAny();
     }
 
-    private static <T> Optional<PluralAttribute<? super T, ?, ?>> findManyToManyWithMappedBy(
+    private static <T> Iterable<PluralAttribute<? super T, ?, ?>> findManyToManyWithMappedBy(
         ManagedType<T> managedType, String mappedBy
     ) {
         return managedType.getPluralAttributes().stream()
             .filter(attr -> attr.getPersistentAttributeType() == MANY_TO_MANY)
             .filter(attr -> mappedBy.equals(resolveMappedBy(attr.getJavaMember())))
-            .findAny();
+            .collect(Collectors.toList());
     }
 
     private static <T> Optional<PluralAttribute<? super T, ?, ?>> findManyToManyWithAttributeName(

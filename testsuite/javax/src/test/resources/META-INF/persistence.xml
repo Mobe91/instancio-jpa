@@ -23,6 +23,10 @@
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$Order</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$OrderItem</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$Person</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyHolder</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyValue</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyJoinColumnHolder</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyJoinColumnValue</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
@@ -39,7 +43,6 @@
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphMinDepthPredictorTest$EmbeddableWithOptionalComponent</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphMinDepthPredictorTest$EmbeddableParent2</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphMinDepthPredictorTest$EmbeddableWithMandatoryComponent</class>
-        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphMinDepthPredictorTest$EmbeddableParent3</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphMinDepthPredictorTest$EmbeddableWithNestedEmbeddableWithMandatoryComponent</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphMinDepthPredictorTest$EmbeddableWithNestedEmbeddableWithOptionalComponent</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphMinDepthPredictorTest$EmbeddableParent4</class>

@@ -35,28 +35,50 @@ public final class JpaMetamodelUtil {
 
     @Nullable
     public static Object resolveAttributeValue(Object entity, Attribute<?, ?> attribute) {
-        try {
-            // TODO: allow configuring field access instead of getter access
-            Method getter = ReflectionUtils.getGetter(entity.getClass(), attribute.getName());
-            if (!getter.isAccessible()) {
-                getter.setAccessible(true);
+        Method getter = ReflectionUtils.getGetter(entity.getClass(), attribute.getName());
+        if (getter == null) {
+            try {
+                Field field = attribute.getDeclaringType().getJavaType().getDeclaredField(attribute.getName());
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                return field.get(entity);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
-            return getter.invoke(entity);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        } else {
+            try {
+                if (!getter.isAccessible()) {
+                    getter.setAccessible(true);
+                }
+                return getter.invoke(entity);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    public static void setAttributeValue(Object entity, Attribute<?, ?> attribute, @Nullable Object value) {
-        try {
-            // TODO: allow configuring field access instead of getter access
-            Method setter = ReflectionUtils.getSetter(entity.getClass(), attribute.getName());
-            if (!setter.isAccessible()) {
-                setter.setAccessible(true);
+    public static void setAttributeValue(Object target, Attribute<?, ?> attribute, @Nullable Object value) {
+        Method setter = ReflectionUtils.getSetter(target.getClass(), attribute.getName());
+        if (setter == null) {
+            try {
+                Field field = attribute.getDeclaringType().getJavaType().getDeclaredField(attribute.getName());
+                if (!field.isAccessible()) {
+                    field.setAccessible(true);
+                }
+                field.set(target, value);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
-            setter.invoke(entity, value);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        } else {
+            try {
+                if (!setter.isAccessible()) {
+                    setter.setAccessible(true);
+                }
+                setter.invoke(target, value);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -109,7 +131,7 @@ public final class JpaMetamodelUtil {
 
     public static SingularAttribute<?, ?> resolveIdAttribute(EntityType<?> entityType, String attributeName) {
         if (entityType.hasSingleIdAttribute()) {
-            SingularAttribute<?, ?> attr = entityType.getId(entityType.getIdType().getJavaType());
+            SingularAttribute<?, ?> attr = getSingleIdAttribute(entityType);
             return attr.getName().equals(attributeName) ? attr : null;
         } else {
             return entityType.getIdClassAttributes().stream()
@@ -117,5 +139,9 @@ public final class JpaMetamodelUtil {
                 .findAny()
                 .orElse(null);
         }
+    }
+
+    public static SingularAttribute<?, ?> getSingleIdAttribute(EntityType<?> entityType) {
+        return entityType.getId(entityType.getIdType().getJavaType());
     }
 }
