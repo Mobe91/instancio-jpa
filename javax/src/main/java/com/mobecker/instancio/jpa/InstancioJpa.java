@@ -37,7 +37,8 @@ public final class InstancioJpa {
         }
 
         public Model<T> build() {
-            Settings settings = this.settings == null ? Settings.defaults().merge(JpaKeys.defaults(metamodel)) : this.settings;
+            Settings settings = this.settings == null
+                ? Settings.defaults().merge(JpaKeys.defaults(metamodel)) : this.settings;
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
                 // TODO: Register selectors only when needed to avoid lenient() at this point
                 .lenient()

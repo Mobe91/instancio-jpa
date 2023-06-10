@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.mobecker.instancio.jpa.selector;
 
 import java.util.function.Function;
@@ -30,26 +31,29 @@ public final class JpaOptionalAttributeSelector extends PredicateSelectorImpl {
 
     private static final Function<Metamodel, Predicate<InternalNode>> JPA_OPTIONAL_ATTRIBUTE_PREDICATE
         = metamodel -> node -> {
-        InternalNode parent = node.getParent();
-        if (parent != null && parent.getTargetClass() != null && node.getField() != null) {
-            try {
-                ManagedType<?> managedType = metamodel.managedType(parent.getTargetClass());
-                Attribute<?, ?> attr = managedType.getAttribute(node.getField().getName());
-                return attr.isCollection() || ((SingularAttribute<?, ?>) attr).isOptional();
-            } catch (IllegalArgumentException e) {
-                LOG.trace(null, e);
-                return false;
+            InternalNode parent = node.getParent();
+            if (parent != null && parent.getTargetClass() != null && node.getField() != null) {
+                try {
+                    ManagedType<?> managedType = metamodel.managedType(parent.getTargetClass());
+                    Attribute<?, ?> attr = managedType.getAttribute(node.getField().getName());
+                    return attr.isCollection() || ((SingularAttribute<?, ?>) attr).isOptional();
+                } catch (IllegalArgumentException e) {
+                    LOG.trace(null, e);
+                    return false;
+                }
             }
-        }
-        return false;
-    };
+            return false;
+        };
 
-    private JpaOptionalAttributeSelector(final Predicate<InternalNode> nodePredicate, final String apiInvocationDescription) {
+    private JpaOptionalAttributeSelector(
+        final Predicate<InternalNode> nodePredicate, final String apiInvocationDescription
+    ) {
         super(nodePredicate, apiInvocationDescription);
     }
 
 
     public static JpaOptionalAttributeSelector jpaOptionalAttribute(Metamodel metamodel) {
-        return new JpaOptionalAttributeSelector(JPA_OPTIONAL_ATTRIBUTE_PREDICATE.apply(metamodel), "jpaOptionalAttribute()");
+        return new JpaOptionalAttributeSelector(
+            JPA_OPTIONAL_ATTRIBUTE_PREDICATE.apply(metamodel), "jpaOptionalAttribute()");
     }
 }

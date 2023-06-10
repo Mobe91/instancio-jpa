@@ -32,11 +32,13 @@
         <version.lombok>1.18.28</version.lombok>
         <version.ant-contrib>1.0b3</version.ant-contrib>
         <version.org-eclipse-transformer-cli>0.2.0</version.org-eclipse-transformer-cli>
+        <version.checkstyle>10.1</version.checkstyle>
 
         <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven-surefire-plugin>3.1.0</version.maven-surefire-plugin>
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
+        <version.maven-checkstyle-plugin>3.3.0</version.maven-checkstyle-plugin>
         <version.build-helper-maven-plugin>3.4.0</version.build-helper-maven-plugin>
     </properties>
 
@@ -80,6 +82,33 @@
                         <phase>package</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${version.maven-checkstyle-plugin}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${version.checkstyle}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <failsOnError>true</failsOnError>
+                    <violationSeverity>warning</violationSeverity>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>

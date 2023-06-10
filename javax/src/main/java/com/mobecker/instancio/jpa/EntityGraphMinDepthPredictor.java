@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.mobecker.instancio.jpa;
 
 import com.mobecker.instancio.jpa.util.JpaProviderVersionUtil;
@@ -50,10 +51,17 @@ public class EntityGraphMinDepthPredictor {
                 int depth;
                 switch (attr.getPersistentAttributeType()) {
                     case ONE_TO_ONE:
-                    case MANY_TO_ONE: depth = 1 + predictRequiredMaxDepth0(attr.getJavaType(), visited); break;
-                    case EMBEDDED: depth = 1 + predictRequiredMaxDepth0(attr.getJavaType(), visited); break;
-                    case BASIC: depth = 1; break;
-                    default: depth = 0;
+                    case MANY_TO_ONE:
+                        depth = 1 + predictRequiredMaxDepth0(attr.getJavaType(), visited);
+                        break;
+                    case EMBEDDED:
+                        depth = 1 + predictRequiredMaxDepth0(attr.getJavaType(), visited);
+                        break;
+                    case BASIC:
+                        depth = 1;
+                        break;
+                    default:
+                        depth = 0;
                 }
                 return depth;
             }).max().orElse(0);
@@ -64,10 +72,13 @@ public class EntityGraphMinDepthPredictor {
 
     private static boolean ignoreAttributeNullability(ManagedType<?> attributeContainer) {
         return JpaProviderVersionUtil.isHibernate5OrOlder()
-            // The nullability information for attributes in embeddables is not always correct (at least for Hibernate 5)
+            // The nullability information for attributes in embeddables is not always correct
+            // (at least for Hibernate 5)
             && (attributeContainer.getPersistenceType() == Type.PersistenceType.EMBEDDABLE
-            // Hibernate 5's metamodel is buggy / indeterministic when it comes to attributes of mapped superclasses.
-            // Assuming I have a MappedSuperclass A with a nullable attribute p0, and two entities B and C that inherit from it.
+            // Hibernate 5's metamodel is buggy / indeterministic when it comes to attributes of mapped superclasses:
+            //
+            // Assuming I have a MappedSuperclass A with a nullable attribute p0, and two entities B and C that
+            // inherit from it.
             // B overrides the nullability of p0 using @AttributeOverride with nullable=false.
             // C does not override the nullability, therefore effectively nullable=true.
             // In this case, it depends on the order in which B and C are processed during the construction of the

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.mobecker.instancio.jpa.selector;
 
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.getAnnotation;
@@ -33,19 +34,19 @@ public final class JpaGeneratedIdSelector extends PredicateSelectorImpl {
 
     private static final Function<Metamodel, Predicate<InternalNode>> JPA_GENERATED_ID_PREDICATE
         = metamodel -> node -> {
-        InternalNode parent = node.getParent();
-        if (parent != null && parent.getTargetClass() != null && node.getField() != null) {
-            try {
-                EntityType<?> entityType = metamodel.entity(parent.getTargetClass());
-                SingularAttribute<?, ?> idAttr = resolveIdAttribute(entityType, node.getField().getName());
-                return idAttr != null && getAnnotation(idAttr, GeneratedValue.class) != null;
-            } catch (IllegalArgumentException e) {
-                LOG.trace(null, e);
-                return false;
+            InternalNode parent = node.getParent();
+            if (parent != null && parent.getTargetClass() != null && node.getField() != null) {
+                try {
+                    EntityType<?> entityType = metamodel.entity(parent.getTargetClass());
+                    SingularAttribute<?, ?> idAttr = resolveIdAttribute(entityType, node.getField().getName());
+                    return idAttr != null && getAnnotation(idAttr, GeneratedValue.class) != null;
+                } catch (IllegalArgumentException e) {
+                    LOG.trace(null, e);
+                    return false;
+                }
             }
-        }
-        return false;
-    };
+            return false;
+        };
 
     private JpaGeneratedIdSelector(final Predicate<InternalNode> nodePredicate, final String apiInvocationDescription) {
         super(nodePredicate, apiInvocationDescription);
