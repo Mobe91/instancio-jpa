@@ -16,7 +16,6 @@
 
 package com.mobecker.instancio.jpa;
 
-import com.mobecker.instancio.jpa.util.JpaProviderVersionUtil;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.metamodel.ManagedType;
@@ -71,11 +70,10 @@ public class EntityGraphMinDepthPredictor {
     }
 
     private static boolean ignoreAttributeNullability(ManagedType<?> attributeContainer) {
-        return JpaProviderVersionUtil.isHibernate5OrOlder()
+        return
             // The nullability information for attributes in embeddables is not always correct
-            // (at least for Hibernate 5)
-            && (attributeContainer.getPersistenceType() == Type.PersistenceType.EMBEDDABLE
-            // Hibernate 5's metamodel is buggy / indeterministic when it comes to attributes of mapped superclasses:
+            (attributeContainer.getPersistenceType() == Type.PersistenceType.EMBEDDABLE
+            // Hibernate's metamodel is buggy / indeterministic when it comes to attributes of mapped superclasses:
             //
             // Assuming I have a MappedSuperclass A with a nullable attribute p0, and two entities B and C that
             // inherit from it.

@@ -35,12 +35,6 @@
             <artifactId>blaze-common-utils</artifactId>
             <version>${version.blaze-common-utils}</version>
         </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${version.hibernate5}</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>

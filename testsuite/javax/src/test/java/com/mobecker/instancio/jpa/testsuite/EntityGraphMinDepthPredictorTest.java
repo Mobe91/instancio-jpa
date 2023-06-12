@@ -15,10 +15,7 @@
  */
 package com.mobecker.instancio.jpa.testsuite;
 
-import static com.mobecker.instancio.jpa.util.JpaProviderVersionUtil.isHibernate5OrOlder;
-import static com.mobecker.instancio.jpa.util.JpaProviderVersionUtil.isHibernate6OrNewer;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.mobecker.instancio.jpa.EntityGraphMinDepthPredictor;
 import java.util.HashSet;
@@ -110,18 +107,7 @@ class EntityGraphMinDepthPredictorTest {
     }
 
     @Test
-    void embeddable_nestedOptionalComponentByOverride_hibernate6() {
-        assumeTrue(isHibernate6OrNewer());
-        // When
-        int predictedMaxDepth = entityGraphMinDepthPredictor.predictRequiredDepth(EmbeddableParent4.class);
-
-        // Then
-        assertThat(predictedMaxDepth).isEqualTo(2);
-    }
-
-    @Test
-    void embeddable_nestedOptionalComponentByOverride_hibernate5() {
-        assumeTrue(isHibernate5OrOlder());
+    void embeddable_nestedOptionalComponentByOverride() {
         // When
         int predictedMaxDepth = entityGraphMinDepthPredictor.predictRequiredDepth(EmbeddableParent4.class);
 
