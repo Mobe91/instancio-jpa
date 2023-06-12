@@ -14,6 +14,8 @@
         <module>testsuite</module>
     </modules>
 
+    <inceptionYear>2023</inceptionYear>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -40,6 +42,7 @@
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
         <version.maven-checkstyle-plugin>3.3.0</version.maven-checkstyle-plugin>
         <version.build-helper-maven-plugin>3.4.0</version.build-helper-maven-plugin>
+        <version.license-maven-plugin>4.2</version.license-maven-plugin>
     </properties>
 
     <build>
@@ -107,6 +110,56 @@
                     <execution>
                         <id>validate</id>
                         <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <name>currentYearDynamic</name>
+                            <pattern>yyyy</pattern>
+                            <locale>en_US</locale>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${version.license-maven-plugin}</version>
+                <configuration>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>license-header.txt</header>
+                            <includes>
+                                <include>**/src/**/*.java</include>
+                                <include>**/src/**/*.xml</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/target/**</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                    <properties>
+                        <inceptionYear>${project.inceptionYear}</inceptionYear>
+                        <latestYearOfContribution>${currentYearDynamic}</latestYearOfContribution>
+                    </properties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>check-license</id>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
