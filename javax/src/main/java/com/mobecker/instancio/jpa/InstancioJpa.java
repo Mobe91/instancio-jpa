@@ -40,11 +40,15 @@ public final class InstancioJpa {
 
         private final Class<T> entityClass;
         private final Metamodel metamodel;
+        private final EntityGraphShrinker entityGraphShrinker;
+        private final EntityGraphAssociationFixer entityGraphAssociationFixer;
         private Settings settings;
 
         public Builder(Class<T> entityClass, Metamodel metamodel) {
             this.entityClass = entityClass;
             this.metamodel = metamodel;
+            this.entityGraphShrinker = new EntityGraphShrinker(metamodel);
+            this.entityGraphAssociationFixer = new EntityGraphAssociationFixer(metamodel);
         }
 
         public Builder<T> withSettings(Settings settings) {
@@ -73,8 +77,13 @@ public final class InstancioJpa {
 
             return instancioApi
                 .onComplete(root(), (root) -> {
-                    new EntityGraphShrinker(metamodel).shrink(root);
-                    new EntityGraphAssociationFixer(metamodel).fixAssociations(root);
+                    if (root instanceof Iterable<?>) {
+                        ((Iterable<?>) root).forEach(entityGraphShrinker::shrink);
+                        ((Iterable<?>) root).forEach(entityGraphAssociationFixer::fixAssociations);
+                    } else {
+                        entityGraphShrinker.shrink(root);
+                        entityGraphAssociationFixer.fixAssociations(root);
+                    }
                 })
                 .toModel();
         }
