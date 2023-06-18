@@ -99,4 +99,5 @@ and therefore it might also work with other providers.
 
 # Feedback
 
-Feedback and bug reports are greatly appreciated. Please submit an issue to report a bug, or if you have a question or a suggestion.
+Feedback and bug reports are greatly appreciated. Please submit an 
+[issue](https://github.com/Mobe91/instancio-jpa/issues) to report a bug, or if you have a question or a suggestion.
