@@ -14,7 +14,41 @@
         <module>testsuite</module>
     </modules>
 
+    <name>JPA extension for Instancio</name>
+    <url>https://persistence.blazebit.com</url>
+    <description>JPA extension for Instancio</description>
     <inceptionYear>2023</inceptionYear>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/Mobe91/instancio-jpa/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:Mobe91/instancio-jpa.git</connection>
+        <developerConnection>scm:git:git@github.com:Mobe91/instancio-jpa.git</developerConnection>
+        <url>git@github.com:Mobe91/instancio-jpa.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>Mobe91</id>
+            <name>Moritz Becker</name>
+            <email>moritz.becker@gmx.at</email>
+            <timezone>UTC+1</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+        </developer>
+    </developers>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
