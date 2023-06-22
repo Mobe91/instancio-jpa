@@ -74,7 +74,7 @@ public class EntityGraphAssociationFixer {
                 LOG.trace("Process attribute {} of entity {}", attr, entity);
                 if (attr.getPersistentAttributeType() == MANY_TO_ONE) {
                     // we need to add the "entity" to the corresponding OneToMany
-                    fixManyToOneAssociation(entity, attr);
+                    fixManyToOneAssociation(entity, (SingularAttribute<?, ?>) attr);
                 } else if (attr.getPersistentAttributeType() == ONE_TO_ONE) {
                     // we need to point the other association side to "entity"
                     fixOneToOneAssociation(entity, attr);
@@ -106,11 +106,11 @@ public class EntityGraphAssociationFixer {
         visited.remove(entity);
     }
 
-    private <X, Y> void fixManyToOneAssociation(Object associationStartValue, Attribute<X, Y> associationStart) {
-        Object associationEndValue = resolveAttributeValue(associationStartValue, associationStart);
+    private <X, Y> void fixManyToOneAssociation(Object associationStartValue, SingularAttribute<X, Y> manyToOneAttr) {
+        Object associationEndValue = resolveAttributeValue(associationStartValue, manyToOneAttr);
         if (associationEndValue != null) {
-            EntityType<Y> associationEndType = metamodel.entity(associationStart.getJavaType());
-            findOneToManyWithMappedBy(associationEndType, associationStart.getName())
+            EntityType<Y> associationEndType = metamodel.entity(manyToOneAttr.getJavaType());
+            findReflectiveAttributesForManyToOne(associationEndType, manyToOneAttr)
                 .forEach(associationEnd -> {
                     populateCollectionOrMap(associationEndValue, associationEnd, associationStartValue);
                 });
@@ -329,12 +329,14 @@ public class EntityGraphAssociationFixer {
         return idClassInstance;
     }
 
-    private static <T> Iterable<PluralAttribute<? super T, ?, ?>> findOneToManyWithMappedBy(
-        ManagedType<T> managedType, String mappedBy
+    private static <T, E> Iterable<PluralAttribute<? super T, ?, E>> findReflectiveAttributesForManyToOne(
+        ManagedType<T> managedType, SingularAttribute<? super E, T> manyToOneAttr
     ) {
         return managedType.getPluralAttributes().stream()
             .filter(attr -> attr.getPersistentAttributeType() == ONE_TO_MANY)
-            .filter(attr -> mappedBy.equals(resolveMappedBy(attr.getJavaMember())))
+            .map(attr -> (PluralAttribute<? super T, ?, E>) attr)
+            .filter(attr -> manyToOneAttr.getName().equals(resolveMappedBy(attr.getJavaMember())))
+            .filter(attr -> manyToOneAttr.getDeclaringType().equals(attr.getElementType()))
             .collect(Collectors.toList());
     }
 

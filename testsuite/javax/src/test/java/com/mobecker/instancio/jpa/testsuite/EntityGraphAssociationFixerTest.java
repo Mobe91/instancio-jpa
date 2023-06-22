@@ -131,9 +131,9 @@ class EntityGraphAssociationFixerTest {
     @Test
     void manyToOne() {
         // Given
-        OrderItem orderItem1 = new OrderItem();
-        OrderItem orderItem2 = new OrderItem();
-        Order order = new Order();
+        OrderItem orderItem1 = new OrderItem(1L);
+        OrderItem orderItem2 = new OrderItem(2L);
+        Order order = new Order(3L);
         orderItem1.setOrderForSet(order);
         order.getOrderItems().add(orderItem2);
 
@@ -222,6 +222,25 @@ class EntityGraphAssociationFixerTest {
 
         // Then
         assertThat(holder.getMap()).containsExactly(new AbstractMap.SimpleEntry<>(mapValue1.getPerson(), mapValue1));
+    }
+
+    @Test
+    void multipleOneToManyWithSameMappedByButDifferentTypes() {
+        // Given
+        MultiOneToManyHolder holder = new MultiOneToManyHolder();
+        holder.assoc1Set.add(new MultiOneToManyHolderAssoc1());
+        holder.assoc2Set.add(new MultiOneToManyHolderAssoc2());
+
+        // When
+        entityGraphAssociationFixer.fixAssociations(holder);
+
+        // Then
+        assertThat(holder.assoc1Set)
+            .hasSize(1)
+            .allSatisfy(assoc1 -> assertThat(assoc1).isExactlyInstanceOf(MultiOneToManyHolderAssoc1.class));
+        assertThat(holder.assoc2Set)
+            .hasSize(1)
+            .allSatisfy(assoc2 -> assertThat(assoc2).isExactlyInstanceOf(MultiOneToManyHolderAssoc2.class));
     }
 
     @Entity
@@ -371,5 +390,46 @@ class EntityGraphAssociationFixerTest {
         public MapWithMapKeyJoinColumnValue(Long id) {
             this.id = id;
         }
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString(onlyExplicitlyIncluded = true)
+    public static class MultiOneToManyHolder {
+        @Id
+        @ToString.Include
+        private Long id;
+        @OneToMany(mappedBy = "holder")
+        private Set<MultiOneToManyHolderAssoc1> assoc1Set = new HashSet<>(0);
+        @OneToMany(mappedBy = "holder")
+        private Set<MultiOneToManyHolderAssoc2> assoc2Set = new HashSet<>(0);
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString(onlyExplicitlyIncluded = true)
+    public static class MultiOneToManyHolderAssoc1 {
+        @Id
+        @ToString.Include
+        private Long id;
+        @ManyToOne
+        private MultiOneToManyHolder holder;
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString(onlyExplicitlyIncluded = true)
+    public static class MultiOneToManyHolderAssoc2 {
+        @Id
+        @ToString.Include
+        private Long id;
+        @ManyToOne
+        private MultiOneToManyHolder holder;
     }
 }

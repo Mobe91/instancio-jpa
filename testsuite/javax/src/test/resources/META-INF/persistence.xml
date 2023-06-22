@@ -29,6 +29,9 @@
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyValue</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyJoinColumnHolder</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyJoinColumnValue</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MultiOneToManyHolder</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MultiOneToManyHolderAssoc1</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MultiOneToManyHolderAssoc2</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
