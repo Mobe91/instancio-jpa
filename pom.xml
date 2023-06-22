@@ -85,6 +85,7 @@
 
         <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
         <version.maven-release-plugin>3.0.1</version.maven-release-plugin>
+        <version.maven-deploy-plugin>3.1.1</version.maven-deploy-plugin>
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
         <version.maven-surefire-plugin>3.1.0</version.maven-surefire-plugin>
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
@@ -100,6 +101,14 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
                     <version>${version.maven-source-plugin}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources-no-fork</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -110,6 +119,11 @@
                         <localCheckout>true</localCheckout>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${version.maven-deploy-plugin}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -137,15 +151,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
