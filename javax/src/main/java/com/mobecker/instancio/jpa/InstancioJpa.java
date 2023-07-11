@@ -26,6 +26,7 @@ import javax.persistence.metamodel.Metamodel;
 import org.instancio.Instancio;
 import org.instancio.InstancioApi;
 import org.instancio.Model;
+import org.instancio.OnCompleteCallback;
 import org.instancio.settings.Settings;
 
 public final class InstancioJpa {
@@ -43,6 +44,7 @@ public final class InstancioJpa {
         private final EntityGraphShrinker entityGraphShrinker;
         private final EntityGraphAssociationFixer entityGraphAssociationFixer;
         private Settings settings;
+        private OnCompleteCallback<T> onCompleteCallback;
 
         public Builder(Class<T> entityClass, Metamodel metamodel) {
             this.entityClass = entityClass;
@@ -53,6 +55,11 @@ public final class InstancioJpa {
 
         public Builder<T> withSettings(Settings settings) {
             this.settings = settings;
+            return this;
+        }
+
+        public Builder<T> onComplete(OnCompleteCallback<T> callback) {
+            this.onCompleteCallback = callback;
             return this;
         }
 
@@ -80,9 +87,15 @@ public final class InstancioJpa {
                     if (root instanceof Iterable<?>) {
                         ((Iterable<?>) root).forEach(entityGraphShrinker::shrink);
                         ((Iterable<?>) root).forEach(entityGraphAssociationFixer::fixAssociations);
+                        if (onCompleteCallback != null) {
+                            ((Iterable<T>) root).forEach(onCompleteCallback::onComplete);
+                        }
                     } else {
                         entityGraphShrinker.shrink(root);
                         entityGraphAssociationFixer.fixAssociations(root);
+                        if (onCompleteCallback != null) {
+                            onCompleteCallback.onComplete((T) root);
+                        }
                     }
                 })
                 .toModel();

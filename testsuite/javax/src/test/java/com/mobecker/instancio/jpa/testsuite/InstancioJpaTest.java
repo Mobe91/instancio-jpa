@@ -73,6 +73,30 @@ class InstancioJpaTest {
         assertThat(orderSet).doesNotContainNull().hasSize(2);
     }
 
+    @Test
+    void onComplete_single() {
+        // When
+        long commonId = 23L;
+        Order order = Instancio.create(jpaModel(Order.class, emf.getMetamodel())
+                .onComplete(o -> o.setId(commonId)).build());
+
+        // Then
+        assertThat(order.getId()).isEqualTo(commonId);
+    }
+
+    @Test
+    void onComplete_multi() {
+        // When
+        long commonId = 23L;
+        Set<Order> orderSet = Instancio.ofSet(jpaModel(Order.class, emf.getMetamodel())
+                .onComplete(order -> order.setId(commonId)).build())
+            .size(2)
+            .create();
+
+        // Then
+        assertThat(orderSet).allSatisfy(order -> assertThat(order.getId()).isEqualTo(commonId));
+    }
+
     @Entity
     @Getter
     @Setter
