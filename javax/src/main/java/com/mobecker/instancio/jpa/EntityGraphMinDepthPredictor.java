@@ -23,6 +23,13 @@ import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+/**
+ * Given an entity class predicts the minimum graph depth that is required to yield a persistable entity graph.
+ * See {@link EntityGraphShrinker} for the meaning of "persistable" in this context.
+ *
+ * @see EntityGraphShrinker
+ * @since 1.0.0
+ */
 public class EntityGraphMinDepthPredictor {
 
     private final Metamodel metamodel;

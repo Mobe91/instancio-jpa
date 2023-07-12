@@ -27,12 +27,46 @@ import org.instancio.Instancio;
 import org.instancio.InstancioApi;
 import org.instancio.Model;
 import org.instancio.OnCompleteCallback;
+import org.instancio.settings.Keys;
 import org.instancio.settings.Settings;
 
+/**
+ * Instancio-jpa extension for creating persistable JPA entities based using the Instancio API.
+ *
+ * @since 1.0.0
+ */
 public final class InstancioJpa {
 
     private InstancioJpa() { }
 
+    /**
+     * Creates a builder for constructing an Instancio model that produces persistable JPA entities.
+     *
+     * <p/>Example:
+     * <pre>{@code
+     *   Model<Person> simpsons = jpaModel(Person.class, metamodel)
+     *       .set(field(Person::getLastName), "Simpson")
+     *       .set(field(Address::getCity), "Springfield")
+     *       .generate(field(Person::getAge), gen -> gen.ints().range(40, 50))
+     *       .build();
+     *
+     *   Person homer = Instancio.of(simpsons)
+     *       .set(field(Person::getFirstName), "Homer")
+     *       .set(all(Gender.class), Gender.MALE)
+     *       .create();
+     *
+     *   Person marge = Instancio.of(simpsons)
+     *       .set(field(Person::getFirstName), "Marge")
+     *       .set(all(Gender.class), Gender.FEMALE)
+     *       .create();
+     * }</pre>
+     *
+     * @param entityClass JPA entity class for which an Instancio model should be created
+     * @param metamodel reference to the JPA metamodel
+     * @param <T> JPA entity type to create
+     * @return InstancioJpa builder reference
+     * @since 1.0.0
+     */
     public static <T> Builder<T> jpaModel(Class<T> entityClass, Metamodel metamodel) {
         return new Builder<>(entityClass, metamodel);
     }
@@ -46,23 +80,58 @@ public final class InstancioJpa {
         private Settings settings;
         private OnCompleteCallback<T> onCompleteCallback;
 
-        public Builder(Class<T> entityClass, Metamodel metamodel) {
+        private Builder(Class<T> entityClass, Metamodel metamodel) {
             this.entityClass = entityClass;
             this.metamodel = metamodel;
             this.entityGraphShrinker = new EntityGraphShrinker(metamodel);
             this.entityGraphAssociationFixer = new EntityGraphAssociationFixer(metamodel);
         }
 
+        /**
+         * Override default {@link Settings} for generating values.
+         * The {@link Settings} class supports various parameters, such as
+         * collection sizes, string lengths, numeric ranges, and so on.
+         * For a list of overridable settings, refer to the {@link Keys} and {@link JpaKeys} class.
+         *
+         * @param settings to use
+         * @return InstancioJpa builder reference
+         * @see Keys
+         * @see JpaKeys
+         * @since 1.0.0
+         */
         public Builder<T> withSettings(Settings settings) {
             this.settings = settings;
             return this;
         }
 
+        /**
+         * A callback that gets invoked after an object has been fully populated.
+         *
+         * <p/>
+         * Example:
+         * <pre>{@code
+         *     // Sets name field on all instances of Person to the specified value
+         *     Model<Person> personModel = jpaModel(Person.class, metamodel).onComplete().build();
+         *     Person person = Instancio.of(personModel)
+         *             .onComplete(newPerson -> newPerson.setName("John"))
+         *             .create();
+         * }</pre>
+         *
+         * @param callback to invoke after object has been populated
+         * @return InstancioJpa builder reference
+         * @since 1.0.0
+         */
         public Builder<T> onComplete(OnCompleteCallback<T> callback) {
             this.onCompleteCallback = callback;
             return this;
         }
 
+        /**
+         * Creates a model containing all the information for populating entities in a persistable way.
+         *
+         * @return a model that can be used as a template for creating persistable JPA entities
+         * @since 1.0.0
+         */
         public Model<T> build() {
             Settings settings = this.settings == null
                 ? Settings.defaults().merge(JpaKeys.defaults(metamodel)) : this.settings;

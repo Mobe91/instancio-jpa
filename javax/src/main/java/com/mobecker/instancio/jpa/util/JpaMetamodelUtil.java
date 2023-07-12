@@ -30,6 +30,12 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.SingularAttribute;
 
+/**
+ * A utility class with helper methods related to navigating and manipulating object graphs based on the JPA
+ * metamodel.
+ *
+ * @since 1.0.0
+ */
 public final class JpaMetamodelUtil {
 
     private JpaMetamodelUtil() { }

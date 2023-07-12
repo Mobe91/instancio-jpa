@@ -29,6 +29,11 @@ import org.instancio.internal.nodes.InternalNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * An Instancio selector that selects JPA generated id attributes.
+ *
+ * @since 1.0.0
+ */
 public final class JpaGeneratedIdSelector extends PredicateSelectorImpl {
     private static final Logger LOG = LoggerFactory.getLogger(JpaGeneratedIdSelector.class);
 

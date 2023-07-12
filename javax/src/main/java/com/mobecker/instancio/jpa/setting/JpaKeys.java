@@ -20,19 +20,33 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.metamodel.Metamodel;
-import org.instancio.documentation.ExperimentalApi;
 import org.instancio.internal.settings.InternalKey;
 import org.instancio.settings.SettingKey;
 import org.instancio.settings.Settings;
 
+/**
+ * Defines all keys supported by instancio-jpa.
+ *
+ * @see SettingKey
+ * @see Settings
+ * @since 1.0.0
+ */
 public final class JpaKeys {
 
     private static final List<SettingKey<Object>> ALL_KEYS = new ArrayList<>();
 
-    @ExperimentalApi
+    /**
+     * A reference to the JPA metamodel.
+     * default is null; property name {@code jpaMetamodel}.
+     */
     public static final SettingKey<Metamodel> METAMODEL = register(
         "jpaMetamodel", Metamodel.class, null, false);
-    @ExperimentalApi
+
+    /**
+     * Specifies whether instancio-jpa should apply the nullability information provided by the JPA metamodel to
+     * the Instancio model used for generating object instances.
+     * default is true; property name {@code useJpaNullability}.
+     */
     public static final SettingKey<Boolean> USE_JPA_NULLABILITY = register(
         "useJpaNullability", Boolean.class, Boolean.TRUE, false);
 

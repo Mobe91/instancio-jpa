@@ -48,6 +48,13 @@ import javax.persistence.metamodel.SingularAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Starting from an entity root, traverses the "wild" entity graph and fixes all associations in the graph to yield
+ * a "sound" entity graph. For example, it alters the owning attribute of a @OneToMany/@ManyToOne association to point
+ * back to the container of the @OneToMany association.
+ *
+ * @since 1.0.0
+ */
 public class EntityGraphAssociationFixer {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityGraphAssociationFixer.class);

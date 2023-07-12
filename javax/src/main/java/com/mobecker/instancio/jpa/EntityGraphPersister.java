@@ -32,6 +32,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
 
+/**
+ * Starting from an entity root, traverses the entity graph and persists entities in the right order.
+ *
+ * @since 1.0.0
+ */
 public class EntityGraphPersister {
 
     private final EntityManager entityManager;

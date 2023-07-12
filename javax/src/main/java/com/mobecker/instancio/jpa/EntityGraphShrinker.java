@@ -33,6 +33,15 @@ import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
+/**
+ * Starting from an entity root, traverses the entity graph depth-first and recursively prunes associations
+ * until it arrives at a persistable entity graph that is maximal relative to the original graph. I.e. it
+ * prunes as little as possible but as much as needed. In this context "persistable" means that based on the
+ * information provided by the JPA metamodel there are no JPA attribute values that would prevent a successful JPA
+ * persist operation on any entity in the graph.
+ *
+ * @since 1.0.0
+ */
 public class EntityGraphShrinker {
 
     private final Metamodel metamodel;
