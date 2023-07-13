@@ -160,6 +160,11 @@
                                     <classifier>sources</classifier>
                                     <type>jar</type>
                                 </artifact>
+                                <artifact>
+                                    <file>${project.build.directory}/${project.build.finalName}-javadoc.jar</file>
+                                    <classifier>javadoc</classifier>
+                                    <type>jar</type>
+                                </artifact>
                             </artifacts>
                         </configuration>
                     </execution>
