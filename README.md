@@ -10,12 +10,18 @@ object graph. It further provides JPA based utilities that allows for straight f
 To use the extension in your tests, include one of the following dependency depending on whether your project uses
 the javax or the jakarta namespace.
 
+```xml
+<properties>
+    <version.instancio-jpa>1.0.0</version.instancio-jpa>
+</properties>
+```
+
 For javax:
 ```xml
 <dependency>
     <groupId>com.mobecker.instancio</groupId>
     <artifactId>instancio-jpa-javax</artifactId>
-    <version>0.9.0</version>
+    <version>${version.instancio-jpa}</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -25,7 +31,7 @@ For jakarta:
 <dependency>
     <groupId>com.mobecker.instancio</groupId>
     <artifactId>instancio-jpa-jakarta</artifactId>
-    <version>0.9.0</version>
+    <version>${version.instancio-jpa}</version>
     <scope>test</scope>
 </dependency>
 ```
