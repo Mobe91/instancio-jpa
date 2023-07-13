@@ -82,6 +82,7 @@
         <version.checkstyle>10.1</version.checkstyle>
 
         <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
+        <version.maven-javadoc-plugin>3.5.0</version.maven-javadoc-plugin>
         <version.maven-release-plugin>3.0.1</version.maven-release-plugin>
         <version.maven-deploy-plugin>3.1.1</version.maven-deploy-plugin>
         <version.maven-antrun-plugin>3.1.0</version.maven-antrun-plugin>
@@ -105,6 +106,19 @@
                             <id>attach-sources-no-fork</id>
                             <goals>
                                 <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${version.maven-javadoc-plugin}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
                             </goals>
                         </execution>
                     </executions>
@@ -153,6 +167,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${version.maven-javadoc-plugin}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
