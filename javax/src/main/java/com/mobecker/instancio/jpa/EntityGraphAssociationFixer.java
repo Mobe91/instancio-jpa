@@ -60,10 +60,20 @@ public class EntityGraphAssociationFixer {
     private static final Logger LOG = LoggerFactory.getLogger(EntityGraphAssociationFixer.class);
     private final Metamodel metamodel;
 
+    /**
+     * Create new {@link EntityGraphAssociationFixer}.
+     *
+     * @param metamodel JPA metamodel
+     */
     public EntityGraphAssociationFixer(Metamodel metamodel) {
         this.metamodel = metamodel;
     }
 
+    /**
+     * See {@link EntityGraphAssociationFixer}.
+     *
+     * @param entity JPA entity
+     */
     public void fixAssociations(Object entity) {
         Set<Object> visited = new HashSet<>();
         fixAssociations0(entity, visited);

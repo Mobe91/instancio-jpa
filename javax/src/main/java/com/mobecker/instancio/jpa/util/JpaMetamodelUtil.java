@@ -40,6 +40,14 @@ public final class JpaMetamodelUtil {
 
     private JpaMetamodelUtil() { }
 
+    /**
+     * Resolves the value of {@code attribute} against the {@code entity}.
+     *
+     * @param entity JPA entity
+     * @param attribute JPA attribute
+     * @return the attribute value
+     * @since 1.0.0
+     */
     @Nullable
     public static Object resolveAttributeValue(Object entity, Attribute<?, ?> attribute) {
         Method getter = ReflectionUtils.getGetter(entity.getClass(), attribute.getName());
@@ -65,6 +73,14 @@ public final class JpaMetamodelUtil {
         }
     }
 
+    /**
+     * Sets the provided {@code value} for the {@code attribute} on the target {@code entity}.
+     *
+     * @param target the target JPA entity
+     * @param attribute the JPA attribute to set
+     * @param value the attribute value to set
+     * @since 1.0.0
+     */
     public static void setAttributeValue(Object target, Attribute<?, ?> attribute, @Nullable Object value) {
         Method setter = ReflectionUtils.getSetter(target.getClass(), attribute.getName());
         if (setter == null) {
@@ -89,6 +105,14 @@ public final class JpaMetamodelUtil {
         }
     }
 
+    /**
+     * Resolves the value of any {@code mappedBy} annotation attribute from the provided {@code member}.
+     *
+     * @param member The java member to read the annotation from
+     * @return The value of any {@code mappedBy} annotation attribute on the member, or {@code null} if no matching
+     *     annotation attribute could be found
+     * @since 1.0.0
+     */
     public static String resolveMappedBy(Member member) {
         if (member instanceof Field) {
             return resolveMappedBy((Field) member);
@@ -125,6 +149,16 @@ public final class JpaMetamodelUtil {
         return manyToMany == null || manyToMany.mappedBy().isEmpty() ? null : manyToMany.mappedBy();
     }
 
+    /**
+     * Resolve annotation from JPA attribute by annotation type. The method uses reflection on the java member of
+     * the JPA attribute to retrieve annotations.
+     *
+     * @param attr the JPA attribute
+     * @param annotationClass the annotation type to resolve
+     * @param <T> the annotation type
+     * @return the annotation, or {@code null} if no annotation of the specified type exists for {@code attr}
+     * @since 1.0.0
+     */
     public static <T extends Annotation> T getAnnotation(Attribute<?, ?> attr, Class<T> annotationClass) {
         Member member = attr.getJavaMember();
         if (member instanceof Field) {
@@ -136,6 +170,15 @@ public final class JpaMetamodelUtil {
         }
     }
 
+    /**
+     * Resolves a JPA id attribute by entity type and attribute name.
+     *
+     * @param entityType the JPA entity type
+     * @param attributeName the JPA attribute name
+     * @return the JPA attribute matching the specified attribute name, or {@code null} if either no attribute with
+     *     the given name exists for the entity type or the matching attribute is not an id attribute.
+     * @since 1.0.0
+     */
     public static SingularAttribute<?, ?> resolveIdAttribute(EntityType<?> entityType, String attributeName) {
         if (entityType.hasSingleIdAttribute()) {
             SingularAttribute<?, ?> attr = getSingleIdAttribute(entityType);
@@ -148,6 +191,16 @@ public final class JpaMetamodelUtil {
         }
     }
 
+    /**
+     * Resolves the single JPA id attribute of the given entity type.
+     *
+     * @param entityType the JPA entity type
+     * @return the single JPA id attribute
+     * @throws IllegalArgumentException if id attribute of the given
+     *     type is not present in the entity type or if
+     *     the entity type has an id class
+     * @since 1.0.0
+     */
     public static SingularAttribute<?, ?> getSingleIdAttribute(EntityType<?> entityType) {
         return entityType.getId(entityType.getIdType().getJavaType());
     }

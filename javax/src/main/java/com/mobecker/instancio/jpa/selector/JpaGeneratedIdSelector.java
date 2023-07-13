@@ -57,6 +57,13 @@ public final class JpaGeneratedIdSelector extends PredicateSelectorImpl {
         super(nodePredicate, apiInvocationDescription);
     }
 
+    /**
+     * Creates new {@link JpaGeneratedIdSelector}.
+     *
+     * @param metamodel JPA metamodel
+     * @return selector that selects JPA generated id attributes
+     * @see JpaGeneratedIdSelector
+     */
     public static JpaGeneratedIdSelector jpaGeneratedId(Metamodel metamodel) {
         return new JpaGeneratedIdSelector(JPA_GENERATED_ID_PREDICATE.apply(metamodel), "jpaGeneratedId()");
     }

@@ -50,10 +50,23 @@ public final class JpaKeys {
     public static final SettingKey<Boolean> USE_JPA_NULLABILITY = register(
         "useJpaNullability", Boolean.class, Boolean.TRUE, false);
 
+    /**
+     * Get a list of all JpaKeys.
+     *
+     * @return a list of all keys defined in {@link JpaKeys}.
+     */
     public static List<SettingKey<Object>> all() {
         return Collections.unmodifiableList(ALL_KEYS);
     }
 
+    /**
+     * Get an instance of {@link Settings} populated with the provided JPA metamodel as {@link JpaKeys#METAMODEL}
+     * and the remaining keys set to their default values.
+     *
+     * @param metamodel JPA metamodel
+     * @return a {@link Settings} instance populated with the provided JPA metamodel and all keys defined in
+     *     {@link JpaKeys} set to their default values
+     */
     public static Settings defaults(Metamodel metamodel) {
         Settings settings = Settings.create();
         settings.set(METAMODEL, metamodel);

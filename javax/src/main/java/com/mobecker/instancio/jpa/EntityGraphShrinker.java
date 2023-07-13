@@ -46,10 +46,20 @@ public class EntityGraphShrinker {
 
     private final Metamodel metamodel;
 
+    /**
+     * Create new {@link EntityGraphShrinker}.
+     *
+     * @param metamodel JPA metamodel
+     */
     public EntityGraphShrinker(Metamodel metamodel) {
         this.metamodel = metamodel;
     }
 
+    /**
+     * See {@link EntityGraphShrinker}.
+     *
+     * @param entity JPA entity
+     */
     public void shrink(Object entity) {
         Set<Object> visited = new HashSet<>();
         shrink0(entity, visited);

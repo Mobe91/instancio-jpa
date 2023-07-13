@@ -56,7 +56,13 @@ public final class JpaOptionalAttributeSelector extends PredicateSelectorImpl {
         super(nodePredicate, apiInvocationDescription);
     }
 
-
+    /**
+     * Creates new {@link JpaOptionalAttributeSelector}.
+     *
+     * @param metamodel JPA metamodel
+     * @return selector that selects JPA optional attributes
+     * @see JpaOptionalAttributeSelector
+     */
     public static JpaOptionalAttributeSelector jpaOptionalAttribute(Metamodel metamodel) {
         return new JpaOptionalAttributeSelector(
             JPA_OPTIONAL_ATTRIBUTE_PREDICATE.apply(metamodel), "jpaOptionalAttribute()");

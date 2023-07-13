@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
  *
  * @since 1.0.0
  */
-public final class JpaTransientAttributeSelectorBuilder extends PredicateSelectorImpl {
-    private static final Logger LOG = LoggerFactory.getLogger(JpaTransientAttributeSelectorBuilder.class);
+public final class JpaTransientAttributeSelector extends PredicateSelectorImpl {
+    private static final Logger LOG = LoggerFactory.getLogger(JpaTransientAttributeSelector.class);
 
     private static final Function<Metamodel, Predicate<InternalNode>> JPA_TRANSIENT_PREDICATE = metamodel -> node -> {
         InternalNode parent = node.getParent();
@@ -51,8 +51,8 @@ public final class JpaTransientAttributeSelectorBuilder extends PredicateSelecto
         return false;
     };
 
-    private JpaTransientAttributeSelectorBuilder(Predicate<InternalNode> nodePredicate,
-                                                   String apiInvocationDescription) {
+    private JpaTransientAttributeSelector(Predicate<InternalNode> nodePredicate,
+                                          String apiInvocationDescription) {
         super(nodePredicate, apiInvocationDescription);
     }
 
@@ -61,7 +61,14 @@ public final class JpaTransientAttributeSelectorBuilder extends PredicateSelecto
         return getter != null && getter.getAnnotation(Transient.class) != null;
     }
 
-    public static JpaTransientAttributeSelectorBuilder jpaTransient(Metamodel metamodel) {
-        return new JpaTransientAttributeSelectorBuilder(JPA_TRANSIENT_PREDICATE.apply(metamodel), "jpaTransient()");
+    /**
+     * Creates new {@link JpaTransientAttributeSelector}.
+     *
+     * @param metamodel JPA metamodel
+     * @return selector that selects JPA transient attributes
+     * @see JpaTransientAttributeSelector
+     */
+    public static JpaTransientAttributeSelector jpaTransient(Metamodel metamodel) {
+        return new JpaTransientAttributeSelector(JPA_TRANSIENT_PREDICATE.apply(metamodel), "jpaTransient()");
     }
 }

@@ -34,10 +34,22 @@ public class EntityGraphMinDepthPredictor {
 
     private final Metamodel metamodel;
 
+    /**
+     * Create new {@link EntityGraphMinDepthPredictor}.
+     *
+     * @param metamodel JPA metamodel
+     */
     public EntityGraphMinDepthPredictor(Metamodel metamodel) {
         this.metamodel = metamodel;
     }
 
+    /**
+     * See {@link EntityGraphMinDepthPredictor}.
+     *
+     * @param entityClass JPA entity class
+     * @return the required depth aligned with the semantics of {@link org.instancio.InstancioApi#withMaxDepth(int)}.
+     * @see org.instancio.InstancioApi#withMaxDepth(int)
+     */
     public int predictRequiredDepth(Class<?> entityClass) {
         Set<Class<?>> visited = new HashSet<>();
         return predictRequiredMaxDepth0(entityClass, visited);

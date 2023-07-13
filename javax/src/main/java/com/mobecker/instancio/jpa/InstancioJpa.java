@@ -20,7 +20,7 @@ import static org.instancio.Select.root;
 
 import com.mobecker.instancio.jpa.selector.JpaGeneratedIdSelector;
 import com.mobecker.instancio.jpa.selector.JpaOptionalAttributeSelector;
-import com.mobecker.instancio.jpa.selector.JpaTransientAttributeSelectorBuilder;
+import com.mobecker.instancio.jpa.selector.JpaTransientAttributeSelector;
 import com.mobecker.instancio.jpa.setting.JpaKeys;
 import javax.persistence.metamodel.Metamodel;
 import org.instancio.Instancio;
@@ -71,6 +71,11 @@ public final class InstancioJpa {
         return new Builder<>(entityClass, metamodel);
     }
 
+    /**
+     * Builder for constructing an Instancio model that produces persistable JPA entities.
+     *
+     * @param <T> JPA entity type to create
+     */
     public static final class Builder<T> {
 
         private final Class<T> entityClass;
@@ -138,7 +143,7 @@ public final class InstancioJpa {
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
                 // TODO: Register selectors only when needed to avoid lenient() at this point
                 .lenient()
-                .set(JpaTransientAttributeSelectorBuilder.jpaTransient(metamodel), null)
+                .set(JpaTransientAttributeSelector.jpaTransient(metamodel), null)
                 .set(JpaGeneratedIdSelector.jpaGeneratedId(metamodel), null)
                 .withSettings(settings.set(JpaKeys.METAMODEL, metamodel));
 

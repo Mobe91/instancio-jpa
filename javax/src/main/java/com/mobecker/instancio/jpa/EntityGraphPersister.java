@@ -42,11 +42,21 @@ public class EntityGraphPersister {
     private final EntityManager entityManager;
     private final Metamodel metamodel;
 
+    /**
+     * Create new {@link EntityGraphPersister}.
+     *
+     * @param entityManager JPA entity manager
+     */
     public EntityGraphPersister(EntityManager entityManager) {
         this.entityManager = entityManager;
         this.metamodel = entityManager.getMetamodel();
     }
 
+    /**
+     * See {@link EntityGraphPersister}.
+     *
+     * @param entity JPA entity
+     */
     public void persist(Object entity) {
         List<Object> visited = new ArrayList<>();
         persist0(entity, visited);
