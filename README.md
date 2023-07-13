@@ -99,14 +99,14 @@ as a hook to add custom logic.
 Since Instancio can only register a single onComplete callback per TargetSelector at the moment the use of Instancio's 
 native onComplete callbacks for the `org.instancio.Select.root()` TargetSelector in combination with instancio-jpa is 
 not supported.
-```
+```java
 Model<Cat> catModel = jpaModel(Cat.class, em).build();
 Cat cat = Instancio.of(catModel)
     .onComplete(root(), cat -> /* do some cat action */) // This is currently not supported!
     .create();
 ```
 As a workaround you can register an onComplete callback on the builder returned by the `jpaModel` method.
-```
+```java
 Model<Cat> catModel = jpaModel(Cat.class, em)
     .onComplete(cat -> /* do some cat action */) // This works
     .build();
