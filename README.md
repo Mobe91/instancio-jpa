@@ -19,7 +19,7 @@ the javax or the jakarta namespace.
 For javax:
 ```xml
 <dependency>
-    <groupId>com.mobecker.instancio</groupId>
+    <groupId>com.mobecker</groupId>
     <artifactId>instancio-jpa-javax</artifactId>
     <version>${version.instancio-jpa}</version>
     <scope>test</scope>
@@ -29,7 +29,7 @@ For javax:
 For jakarta:
 ```xml
 <dependency>
-    <groupId>com.mobecker.instancio</groupId>
+    <groupId>com.mobecker</groupId>
     <artifactId>instancio-jpa-jakarta</artifactId>
     <version>${version.instancio-jpa}</version>
     <scope>test</scope>
