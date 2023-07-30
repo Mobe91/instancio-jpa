@@ -18,10 +18,16 @@ package com.mobecker.instancio.jpa;
 
 import static org.instancio.Select.root;
 
+import com.mobecker.instancio.jpa.api.InstancioJpaApi;
+import com.mobecker.instancio.jpa.api.InstancioJpaApiImpl;
+import com.mobecker.instancio.jpa.api.InstancioJpaOfCollectionApi;
+import com.mobecker.instancio.jpa.api.InstancioJpaOfCollectionApiImpl;
 import com.mobecker.instancio.jpa.selector.JpaGeneratedIdSelector;
 import com.mobecker.instancio.jpa.selector.JpaOptionalAttributeSelector;
 import com.mobecker.instancio.jpa.selector.JpaTransientAttributeSelector;
 import com.mobecker.instancio.jpa.setting.JpaKeys;
+import java.util.Set;
+import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
 import org.instancio.Instancio;
 import org.instancio.InstancioApi;
@@ -37,11 +43,12 @@ import org.instancio.settings.Settings;
  */
 public final class InstancioJpa {
 
-    private InstancioJpa() { }
+    private InstancioJpa() {
+    }
 
     /**
      * Creates a builder for constructing an Instancio model that produces persistable JPA entities.
-     *
+     * <p>
      * <p/>Example:
      * <pre>{@code
      *   Model<Person> simpsons = jpaModel(Person.class, metamodel)
@@ -62,8 +69,8 @@ public final class InstancioJpa {
      * }</pre>
      *
      * @param entityClass JPA entity class for which an Instancio model should be created
-     * @param metamodel reference to the JPA metamodel
-     * @param <T> JPA entity type to create
+     * @param metamodel   reference to the JPA metamodel
+     * @param <T>         JPA entity type to create
      * @return InstancioJpa builder reference
      * @since 1.0.0
      */
@@ -111,7 +118,7 @@ public final class InstancioJpa {
 
         /**
          * A callback that gets invoked after an object has been fully populated.
-         *
+         * <p>
          * <p/>
          * Example:
          * <pre>{@code
@@ -175,4 +182,33 @@ public final class InstancioJpa {
                 .toModel();
         }
     }
+
+    /**
+     * Factory method to create a single persistable entity instance of entityClass.
+     *
+     * @param entityClass
+     * @param entityManager
+     * @param <T>
+     * @return JPA aware InstancioApi implementation to manage the lifecycle of the entity
+     */
+    public static <T> InstancioJpaApi<T> of(Class<T> entityClass, EntityManager entityManager) {
+        Builder<T> model = jpaModel(entityClass, entityManager.getMetamodel());
+        return new InstancioJpaApiImpl<>(model.build(), entityManager);
+    }
+
+    /**
+     * Factory method to create a set of persistable entity instances of entityClass.
+     *
+     * @param entityClass
+     * @param entityManager
+     * @param <T>
+     * @return JPA aware InstancioApi implementation to manage the lifecycle of the entities
+     */
+    public static <T, C extends Set> InstancioJpaOfCollectionApi<C> ofSet(Class<T> entityClass,
+                                                                          EntityManager entityManager) {
+        Builder<T> model = jpaModel(entityClass, entityManager.getMetamodel());
+        return (InstancioJpaOfCollectionApi<C>) new InstancioJpaOfCollectionApiImpl<>(Set.class, model.build(),
+            entityManager);
+    }
+
 }
