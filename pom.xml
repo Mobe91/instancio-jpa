@@ -64,7 +64,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <version.instancio>2.15.0</version.instancio>
+        <version.instancio>3.0.1</version.instancio>
         <version.blaze-common-utils>0.1.21</version.blaze-common-utils>
         <version.findbugs-jsr305>3.0.2</version.findbugs-jsr305>
         <version.junit>5.9.3</version.junit>
