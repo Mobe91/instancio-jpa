@@ -16,6 +16,7 @@
 
 package com.mobecker.instancio.jpa;
 
+import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.isInsertable;
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.resolveAttributeValue;
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.resolveMappedBy;
 import static javax.persistence.metamodel.Attribute.PersistentAttributeType.MANY_TO_MANY;
@@ -76,8 +77,9 @@ public class EntityGraphPersister {
         visited.add(entity);
         EntityType<?> entityType = metamodel.entity(entity.getClass());
         entityType.getSingularAttributes().forEach(attr -> {
-            if (attr.getPersistentAttributeType() == MANY_TO_ONE
-                || attr.getPersistentAttributeType() == ONE_TO_ONE && !isOwnedSide(attr.getJavaMember())
+            if ((attr.getPersistentAttributeType() == MANY_TO_ONE
+                || attr.getPersistentAttributeType() == ONE_TO_ONE && !isOwnedSide(attr.getJavaMember()))
+                && isInsertable(attr)
             ) {
                 Object attrValue = resolveAttributeValue(entity, attr);
                 if (attrValue != null) {
@@ -87,14 +89,17 @@ public class EntityGraphPersister {
         });
         entityManager.persist(entity);
         entityType.getAttributes().forEach(attr -> {
-            if (attr.getPersistentAttributeType() == ONE_TO_ONE && isOwnedSide(attr.getJavaMember())
+            if (attr.getPersistentAttributeType() == ONE_TO_ONE
+                && isOwnedSide(attr.getJavaMember())
+                && isInsertable(attr)
             ) {
                 Object attrValue = resolveAttributeValue(entity, attr);
                 if (attrValue != null && !visited.contains(attrValue)) {
                     persist0(attrValue, visited);
                 }
-            } else if (attr.getPersistentAttributeType() == ONE_TO_MANY
-                || attr.getPersistentAttributeType() == MANY_TO_MANY
+            } else if ((attr.getPersistentAttributeType() == ONE_TO_MANY
+                || attr.getPersistentAttributeType() == MANY_TO_MANY)
+                && isInsertable(attr)
             ) {
                 Collection<?> collection = (Collection<?>) resolveAttributeValue(entity, attr);
                 if (collection != null) {

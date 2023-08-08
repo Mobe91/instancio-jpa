@@ -23,6 +23,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import javax.annotation.Nullable;
+import javax.persistence.Column;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -203,5 +205,17 @@ public final class JpaMetamodelUtil {
      */
     public static SingularAttribute<?, ?> getSingleIdAttribute(EntityType<?> entityType) {
         return entityType.getId(entityType.getIdType().getJavaType());
+    }
+
+    /**
+     * Checks if a JPA attribute is insertable according to its mapping annotations.
+     *
+     * @param attribute The JPA attribute to check.
+     * @return true if the attribute is insertable, else false.
+     */
+    public static boolean isInsertable(Attribute<?, ?> attribute) {
+        Column column = getAnnotation(attribute, Column.class);
+        JoinColumn joinColumn = getAnnotation(attribute, JoinColumn.class);
+        return (column == null || column.insertable()) && (joinColumn == null || joinColumn.insertable());
     }
 }

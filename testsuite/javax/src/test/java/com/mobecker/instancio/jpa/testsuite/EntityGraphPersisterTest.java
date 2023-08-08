@@ -32,6 +32,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.Persistence;
@@ -42,6 +44,8 @@ import org.instancio.Instancio;
 import org.instancio.Model;
 import org.instancio.junit.InstancioExtension;
 import org.instancio.junit.Seed;
+import org.instancio.settings.AssignmentType;
+import org.instancio.settings.Keys;
 import org.instancio.settings.Settings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -127,6 +131,35 @@ class EntityGraphPersisterTest {
 
         // Then
         assertThat(order.getDescription()).isNotNull();
+    }
+
+    @Test
+    void entityWithNonInsertableAssociation() {
+        // Given
+        Order persistedOrder = doInTransaction(() -> {
+            Order order = Instancio.of(jpaModel(Order.class, emf.getMetamodel()).build()).create();
+            entityGraphPersister.persist(order);
+            return order;
+        });
+        EntityWithNonInsertableAssociation entityWithNonInsertableAssociation = Instancio.of(
+            jpaModel(EntityWithNonInsertableAssociation.class, emf.getMetamodel())
+                .withSettings(Settings.defaults().merge(JpaKeys.defaults(emf.getMetamodel())).set(Keys.ASSIGNMENT_TYPE, AssignmentType.METHOD))
+                .build()
+        ).create();
+
+        // When
+        doInTransaction(() -> {
+            Order detachedOrder = entityManager.find(Order.class, persistedOrder.getId());
+            entityManager.detach(detachedOrder);
+            entityWithNonInsertableAssociation.setOrder(detachedOrder);
+            // If persist is invoked on the detachedOrder an exception will be thrown.
+            entityGraphPersister.persist(entityWithNonInsertableAssociation);
+        });
+
+        // Then
+        EntityWithNonInsertableAssociation actual = doInTransaction(() -> entityManager.find(
+            EntityWithNonInsertableAssociation.class, entityWithNonInsertableAssociation.getId()));
+        assertThat(actual.getOrder().getId()).isEqualTo(persistedOrder.getId());
     }
 
     private <V> V doInTransaction(Callable<V> callable) {
@@ -255,4 +288,28 @@ class EntityGraphPersisterTest {
 
     @Entity
     public static class OrderWithDescription2 extends AbstractOrder { }
+
+    @Entity
+    public static class EntityWithNonInsertableAssociation {
+
+        @Id
+        @Getter
+        @Setter
+        private Long id;
+
+        @Column(name = "order_id")
+        private Long orderId;
+
+        @ManyToOne(optional = false)
+        @JoinColumn(name = "order_id", insertable = false, updatable = false)
+        @Getter
+        private Order order;
+
+        public void setOrder(Order order) {
+            this.order = order;
+            if (order != null) {
+                this.orderId = order.getId();
+            }
+        }
+    }
 }

@@ -68,6 +68,7 @@
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphPersisterTest$OrderWithDescription</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphPersisterTest$OrderWithDescription1</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphPersisterTest$OrderWithDescription2</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphPersisterTest$EntityWithNonInsertableAssociation</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
