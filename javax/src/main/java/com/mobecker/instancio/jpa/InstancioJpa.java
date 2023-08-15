@@ -29,6 +29,7 @@ import org.instancio.Model;
 import org.instancio.OnCompleteCallback;
 import org.instancio.settings.Keys;
 import org.instancio.settings.Settings;
+import org.instancio.support.Global;
 
 /**
  * Instancio-jpa extension for creating persistable JPA entities based using the Instancio API.
@@ -139,7 +140,7 @@ public final class InstancioJpa {
          */
         public Model<T> build() {
             Settings settings = this.settings == null
-                ? Settings.defaults().merge(JpaKeys.defaults(metamodel)) : this.settings;
+                ? Global.getPropertiesFileSettings().merge(JpaKeys.defaults(metamodel)) : this.settings;
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
                 // TODO: Register selectors only when needed to avoid lenient() at this point
                 .lenient()
