@@ -16,24 +16,19 @@
 
 package com.mobecker.instancio.jpa;
 
-import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.getAnnotation;
-import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.resolveIdAttribute;
-
 import com.mobecker.instancio.jpa.setting.JpaKeys;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import javax.persistence.GeneratedValue;
+import javax.annotation.Nullable;
+import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
-import javax.persistence.metamodel.SingularAttribute;
 import org.instancio.Node;
 import org.instancio.generator.Generator;
-import org.instancio.internal.generator.sequence.IntegerSequenceGenerator;
-import org.instancio.internal.generator.sequence.LongSequenceGenerator;
+import org.instancio.generator.GeneratorSpec;
 import org.instancio.spi.InstancioServiceProvider;
 import org.instancio.spi.ServiceProviderContext;
 import org.slf4j.Logger;
@@ -48,20 +43,25 @@ import org.slf4j.LoggerFactory;
 public class InstancioJpaServiceProvider implements InstancioServiceProvider {
     private static final Logger LOG = LoggerFactory.getLogger(InstancioJpaServiceProvider.class);
 
-    private static final Map<Class<?>, Class<? extends Generator<?>>> ID_GENERATORS;
+    private static final List<JpaAttributeGeneratorResolver> JPA_ATTRIBUTE_GENERATOR_RESOLVERS = Arrays.asList(
+        // Order matters
+        new IdGeneratorResolver(),
+        new StringGeneratorResolver()
+    );
 
-    static {
-        Map<Class<?>, Class<? extends Generator<?>>> idGenerators = new HashMap<>(1);
-        idGenerators.put(Long.class, LongSequenceGenerator.class);
-        idGenerators.put(Integer.class, IntegerSequenceGenerator.class);
-        ID_GENERATORS = Collections.unmodifiableMap(idGenerators);
-    }
-
-    private Metamodel metamodel;
+    private volatile Metamodel metamodel;
+    private volatile String[] generatorProviderExclusions;
 
     @Override
     public void init(ServiceProviderContext context) {
         this.metamodel = context.getSettings().get(JpaKeys.METAMODEL);
+        this.generatorProviderExclusions = convertGeneratorProviderExclusions(
+            context.getSettings().get(JpaKeys.GENERATOR_PROVIDER_EXCLUSIONS));
+    }
+
+    private static String[] convertGeneratorProviderExclusions(@Nullable String rawExclusions) {
+        return rawExclusions == null ? new String[0] : Arrays.stream(rawExclusions.split(","))
+            .map(String::trim).toArray(String[]::new);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
         Map<Node, Generator<?>> contextualGenerators = new HashMap<>();
         return (node, generators) -> {
             Field field = node.getField();
-            if (field != null && metamodel != null) {
+            if (field != null && metamodel != null && !isExcluded(field)) {
                 EntityType<?> entityType;
                 try {
                     // Actually, we would need sth like node.getParent().getTargetClass() at this point but the
@@ -88,40 +88,39 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
                     LOG.trace(null, e);
                     return null;
                 }
-                SingularAttribute<?, ?> idAttr = resolveIdAttribute(entityType, field.getName());
-                if (idAttr != null && getAnnotation(idAttr, GeneratedValue.class) == null) {
-                    return resolveIdGenerator(contextualGenerators, node, idAttr.getJavaType());
+
+                Attribute<?, ?> idAttr = entityType.getAttribute(field.getName());
+                for (JpaAttributeGeneratorResolver jpaAttributeGeneratorResolver : JPA_ATTRIBUTE_GENERATOR_RESOLVERS) {
+                    GeneratorSpec<?> generator = jpaAttributeGeneratorResolver.getGenerator(
+                        node, generators, idAttr, () -> contextualGenerators);
+                    if (generator != null) {
+                        return generator;
+                    }
                 }
             }
             return null;
         };
     }
 
-    private Generator<?> resolveIdGenerator(
-        Map<Node, Generator<?>> contextualGenerators, Node node, Class<?> idClass
-    ) {
-        Generator<?> generator = contextualGenerators.get(node);
-        if (generator != null) {
-            return generator;
-        }
-        generator = instantiateIdGenerator(idClass);
-        if (generator != null) {
-            contextualGenerators.put(node, generator);
-        }
-        return generator;
-    }
-
-    private static Generator<?> instantiateIdGenerator(Class<?> idClass) {
-        Class<?> generatorClass = ID_GENERATORS.get(idClass);
-        if (generatorClass != null) {
-            try {
-                Constructor<?> constructor = generatorClass.getConstructor();
-                return (Generator<?>) constructor.newInstance();
-            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
-                     | InvocationTargetException e) {
-                throw new RuntimeException(e);
+    private boolean isExcluded(Field field) {
+        for (String exclusion : generatorProviderExclusions) {
+            String[] exclusionParts = exclusion.split("#");
+            String className;
+            String fieldName;
+            if (exclusionParts.length == 1) {
+                className = exclusionParts[0];
+                fieldName = null;
+            } else if (exclusionParts.length == 2) {
+                className = exclusionParts[0];
+                fieldName = exclusionParts[1];
+            } else {
+                throw new IllegalStateException(String.format("Cannot parse exclusion '%s'.", exclusion));
+            }
+            if (className.equals(field.getDeclaringClass().getName())
+                && (fieldName == null || fieldName.equals(field.getName()))) {
+                return true;
             }
         }
-        return null;
+        return false;
     }
 }

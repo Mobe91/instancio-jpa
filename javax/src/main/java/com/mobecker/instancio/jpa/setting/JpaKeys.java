@@ -40,7 +40,7 @@ public final class JpaKeys {
      * default is null; property name {@code jpaMetamodel}.
      */
     public static final SettingKey<Metamodel> METAMODEL = register(
-        "jpaMetamodel", Metamodel.class, null, false);
+        null, Metamodel.class, null, false);
 
     /**
      * Specifies whether instancio-jpa should apply the nullability information provided by the JPA metamodel to
@@ -48,7 +48,20 @@ public final class JpaKeys {
      * default is true; property name {@code useJpaNullability}.
      */
     public static final SettingKey<Boolean> USE_JPA_NULLABILITY = register(
-        "useJpaNullability", Boolean.class, Boolean.TRUE, false);
+        "jpa.useNullability", Boolean.class, Boolean.TRUE, false);
+
+    /**
+     * A list of fully qualified Java type names with an optional field part to represent nodes that should not
+     * be handled by the built-in generators provided by instancio-jpa. This is useful if you provide your own
+     * {@link org.instancio.spi.InstancioServiceProvider.GeneratorProvider} to generate values for certain nodes.
+     * Since Instancio does currently not support ordering of
+     * {@link org.instancio.spi.InstancioServiceProvider.GeneratorProvider}s you need to exclude these nodes from
+     * being handled by the instancio-jpa provided
+     * {@link org.instancio.spi.InstancioServiceProvider.GeneratorProvider}.
+     * default is null; property name {@code generatorProviderExclusions}.
+     */
+    public static final SettingKey<String> GENERATOR_PROVIDER_EXCLUSIONS = register(
+        "jpa.generatorProviderExclusions", String.class, null, true);
 
     /**
      * Get a list of all JpaKeys.

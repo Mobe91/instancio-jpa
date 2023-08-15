@@ -140,7 +140,7 @@ public final class InstancioJpa {
          */
         public Model<T> build() {
             Settings settings = this.settings == null
-                ? Global.getPropertiesFileSettings().merge(JpaKeys.defaults(metamodel)) : this.settings;
+                ? JpaKeys.defaults(metamodel).merge(Global.getPropertiesFileSettings()) : this.settings;
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
                 // TODO: Register selectors only when needed to avoid lenient() at this point
                 .lenient()

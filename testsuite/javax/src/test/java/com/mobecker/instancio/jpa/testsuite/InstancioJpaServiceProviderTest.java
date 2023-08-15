@@ -19,10 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.mobecker.instancio.jpa.setting.JpaKeys;
 import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Id;
 import javax.persistence.Persistence;
+import lombok.Getter;
+import lombok.Setter;
 import org.instancio.Instancio;
 import org.instancio.settings.Settings;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,12 +41,12 @@ class InstancioJpaServiceProviderTest {
     }
 
     @Test
-    void testIdSequence() {
+    void longIdSequence() {
         // Given
         Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
 
         // When
-        List<Order> orders = Instancio.ofList(Instancio.of(Order.class)
+        List<OrderWithLongId> orders = Instancio.ofList(Instancio.of(OrderWithLongId.class)
             .withSettings(settings)
             .toModel()).size(2).create();
 
@@ -52,17 +55,83 @@ class InstancioJpaServiceProviderTest {
         assertThat(orders.get(1).getId()).isEqualTo(2L);
     }
 
+    @Test
+    void integerIdSequence() {
+        // Given
+        Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
+
+        // When
+        List<OrderWithIntegerId> orders = Instancio.ofList(Instancio.of(OrderWithIntegerId.class)
+            .withSettings(settings)
+            .toModel()).size(2).create();
+
+        // Then
+        assertThat(orders.get(0).getId()).isEqualTo(1L);
+        assertThat(orders.get(1).getId()).isEqualTo(2L);
+    }
+
+    @Test
+    void stringIdSequence() {
+        // Given
+        Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
+
+        // When
+        List<OrderWithStringId> orders = Instancio.ofList(Instancio.of(OrderWithStringId.class)
+            .withSettings(settings)
+            .toModel()).size(2).create();
+
+        // Then
+        assertThat(orders.get(0).getId()).isEqualTo("1");
+        assertThat(orders.get(1).getId()).isEqualTo("2");
+    }
+
+    @Test
+    void columnLength() {
+        // Given
+        Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
+
+        // When
+        OrderWithColumnLength order = Instancio.create(Instancio.of(OrderWithColumnLength.class)
+            .withSettings(settings)
+            .toModel());
+
+        // Then
+        assertThat(order.getName()).hasSizeLessThanOrEqualTo(OrderWithColumnLength.COLUMN_LENGTH);
+    }
+
     @Entity
-    public static class Order {
+    @Getter
+    @Setter
+    public static class OrderWithLongId {
         @Id
         private Long id;
+    }
 
-        public Long getId() {
-            return id;
-        }
+    @Entity
+    @Getter
+    @Setter
+    public static class OrderWithIntegerId {
+        @Id
+        private Integer id;
+    }
 
-        public void setId(Long id) {
-            this.id = id;
-        }
+    @Entity
+    @Getter
+    @Setter
+    public static class OrderWithStringId {
+        @Id
+        private String id;
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    public static class OrderWithColumnLength {
+        private static final int COLUMN_LENGTH = 2;
+
+        @Id
+        private Long id;
+        @Column(length = COLUMN_LENGTH)
+        private String name;
     }
 }

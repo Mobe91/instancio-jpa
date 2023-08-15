@@ -29,7 +29,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.IdentifiableType;
 import javax.persistence.metamodel.SingularAttribute;
 
 /**
@@ -181,7 +181,7 @@ public final class JpaMetamodelUtil {
      *     the given name exists for the entity type or the matching attribute is not an id attribute.
      * @since 1.0.0
      */
-    public static SingularAttribute<?, ?> resolveIdAttribute(EntityType<?> entityType, String attributeName) {
+    public static SingularAttribute<?, ?> resolveIdAttribute(IdentifiableType<?> entityType, String attributeName) {
         if (entityType.hasSingleIdAttribute()) {
             SingularAttribute<?, ?> attr = getSingleIdAttribute(entityType);
             return attr.getName().equals(attributeName) ? attr : null;
@@ -203,14 +203,14 @@ public final class JpaMetamodelUtil {
      *     the entity type has an id class
      * @since 1.0.0
      */
-    public static SingularAttribute<?, ?> getSingleIdAttribute(EntityType<?> entityType) {
+    public static SingularAttribute<?, ?> getSingleIdAttribute(IdentifiableType<?> entityType) {
         return entityType.getId(entityType.getIdType().getJavaType());
     }
 
     /**
      * Checks if a JPA attribute is insertable according to its mapping annotations.
      *
-     * @param attribute The JPA attribute to check.
+     * @param attribute the JPA attribute to check.
      * @return true if the attribute is insertable, else false.
      */
     public static boolean isInsertable(Attribute<?, ?> attribute) {
