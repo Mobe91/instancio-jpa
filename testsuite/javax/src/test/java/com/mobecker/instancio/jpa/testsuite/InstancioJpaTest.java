@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.mobecker.instancio.jpa.testsuite;
 
 import static com.mobecker.instancio.jpa.InstancioJpa.jpaModel;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.field;
 
+import com.mobecker.instancio.jpa.InstancioJpa;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Id;
 import javax.persistence.Persistence;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import lombok.Getter;
 import lombok.Setter;
 import org.instancio.Instancio;
@@ -78,7 +85,7 @@ class InstancioJpaTest {
         // When
         long commonId = 23L;
         Order order = Instancio.create(jpaModel(Order.class, emf.getMetamodel())
-                .onComplete(o -> o.setId(commonId)).build());
+            .onComplete(o -> o.setId(commonId)).build());
 
         // Then
         assertThat(order.getId()).isEqualTo(commonId);
@@ -97,11 +104,49 @@ class InstancioJpaTest {
         assertThat(orderSet).allSatisfy(order -> assertThat(order.getId()).isEqualTo(commonId));
     }
 
+    @Test
+    void of_shouldPersistTheEntity() {
+        // Given
+        EntityManager em = emf.createEntityManager();
+
+        // When
+        InstancioJpa.of(Order.class, em)
+            .set(field(Order::getId), 1234L)
+            .persist();
+
+
+        // Then
+        Order order = em.find(Order.class, 1234L);
+        assertThat(order.getId()).isEqualTo(1234L);
+        assertThat(order.getValue()).isNotNull();
+    }
+
+    @Test
+    void ofSet_shouldPersistMultipleEntities() {
+        // Given
+        EntityManager em = emf.createEntityManager();
+
+        // When
+        InstancioJpa.ofSet(Order.class, em)
+            .size(2)
+            .persist();
+
+        // Then
+        CriteriaQuery<Order> query = emf.getCriteriaBuilder().createQuery(Order.class);
+        Root<Order> root = query.from(Order.class);
+
+        List<Order> orders = em.createQuery(query.select(root)).getResultList();
+        assertThat(orders).doesNotContainNull().hasSize(2);
+    }
+
     @Entity
     @Getter
     @Setter
     public static class Order {
         @Id
         private Long id;
+
+        @Column(nullable = false)
+        private String value;
     }
 }
