@@ -21,10 +21,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.mobecker.instancio.jpa.EntityGraphShrinker;
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Id;
@@ -117,6 +121,26 @@ class EntityGraphShrinkerTest {
         assertThat(order.getOrderItemsById()).containsExactly(new AbstractMap.SimpleEntry<>(orderItem2.getId(), orderItem2));
     }
 
+    @Test
+    void elementCollections() {
+        // Given
+        Set<String> set = Collections.singleton("setElement");
+        List<String> list = Collections.singletonList("listElement");
+        Map<String, String> map = Collections.singletonMap("mapKey", "mapValue");
+        EntityWithElementCollections entity = new EntityWithElementCollections();
+        entity.setSet(new HashSet<>(set));
+        entity.setList(new ArrayList<>(list));
+        entity.setMap(new HashMap<>(map));
+
+        // When
+        entityGraphShrinker.shrink(entity);
+
+        // Then
+        assertThat(entity.getSet()).isEqualTo(set);
+        assertThat(entity.getList()).isEqualTo(list);
+        assertThat(entity.getMap()).isEqualTo(map);
+    }
+
     @Entity
     @Getter
     @Setter
@@ -137,5 +161,19 @@ class EntityGraphShrinkerTest {
         private Long id;
         @ManyToOne(optional = false)
         private Order order;
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    public static class EntityWithElementCollections {
+        @Id
+        private Long id;
+        @ElementCollection
+        private Set<String> set = new HashSet<>(0);
+        @ElementCollection
+        private List<String> list = new ArrayList<>(0);
+        @ElementCollection
+        private Map<String, String> map = new HashMap<>(0);
     }
 }

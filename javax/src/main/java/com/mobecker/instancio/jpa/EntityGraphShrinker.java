@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.PluralAttribute;
@@ -81,7 +82,8 @@ public class EntityGraphShrinker {
                 if (attrValue != null && !isValid((SingularAttribute<?, ?>) attr, attrValue)) {
                     setAttributeValue(node, attr, null);
                 }
-            } else if (attr instanceof PluralAttribute<?, ?, ?>) {
+            } else if (attr instanceof PluralAttribute<?, ?, ?>
+                && attr.getPersistentAttributeType() != Attribute.PersistentAttributeType.ELEMENT_COLLECTION) {
                 PluralAttribute<?, ?, ?> pluralAttribute = (PluralAttribute<?, ?, ?>) attr;
                 if (pluralAttribute.getCollectionType() == PluralAttribute.CollectionType.MAP) {
                     Map<?, ?> attrMap = (Map<?, ?>) attrValue;
