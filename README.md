@@ -44,14 +44,36 @@ returns an `org.instancio.Model` that is usable with the Instancio APIs.
 The extension can be used like this:
 
 ```java
-EntityManager em = /* Retrieve EntityManager. */;
-EntityGraphPersister persister = new EntityGraphPersister(em);
+EntityManager entityManager = /* Retrieve EntityManager. */;
+EntityGraphPersister persister = new EntityGraphPersister(entityManager);
 Model<MyEntity> myEntityModel = jpaModel(MyEntity.class, em.getMetamodel()).build();
 // Use normal Instancio API in next line to shape how the objects are populated.
 MyEntity myEntity = Instancio.of(myEntityModel).create();
 // Persist the created object graph using the provided EntityGraphPersister.
 persister.persist(myEntity);
 ```
+
+# Configuration
+
+Just like Instancio, instancio-jpa supports programmatic and properties file based configuration.
+
+For the programmatic configuration combine Instancio native settings with instancio-jpa configuration keys:
+```java
+Model<Cat> catModel = jpaModel(Cat.class, entityManager.getMetamodel()).withSettings(Settings.defaults()
+        .set(Keys.ASSIGNMENT_TYPE, AssignmentType.METHOD)
+        .set(JpaKeys.USE_JPA_NULLABILITY, false))
+    .build();
+Cat cat = Instancio.of(catModel);
+```
+
+For the properties file based configuration, add instancio-jpa specific configuration keys to the standard
+`instancio.properties`.
+```properties
+assignment.type=METHOD
+jpa.useNullability=false
+```
+
+See `com.mobecker.instancio.jpa.setting.JpaKeys` for available configurations.
 
 # Limitations
 
@@ -74,7 +96,7 @@ public class Cat {
     // getters and setters skipped
 }
 
-Model<Cat> catModel = jpaModel(Cat.class, em).build();
+Model<Cat> catModel = jpaModel(Cat.class, jpaMetamodel).build();
 Cat cat = Instancio.of(catModel)
     .set(fields(Cat::getName), "harry")
     .create();
@@ -87,7 +109,7 @@ nullable by the `jpaModel` method.
 
 As a workaround you can set the configuration option `USE_JPA_NULLABILITY` to `false`:
 ```java
-Model<Cat> catModel = jpaModel(Cat.class, em)
+Model<Cat> catModel = jpaModel(Cat.class, jpaMetamodel)
     .withSettings(Settings.defaults().set(JpaKeys.USE_JPA_NULLABILITY, false))
     .build();
 ```
@@ -100,14 +122,14 @@ Since Instancio can only register a single onComplete callback per TargetSelecto
 native onComplete callbacks for the `org.instancio.Select.root()` TargetSelector in combination with instancio-jpa is 
 not supported.
 ```java
-Model<Cat> catModel = jpaModel(Cat.class, em).build();
+Model<Cat> catModel = jpaModel(Cat.class, jpaMetamodel).build();
 Cat cat = Instancio.of(catModel)
     .onComplete(root(), cat -> /* do some cat action */) // This is currently not supported!
     .create();
 ```
 As a workaround you can register an onComplete callback on the builder returned by the `jpaModel` method.
 ```java
-Model<Cat> catModel = jpaModel(Cat.class, em)
+Model<Cat> catModel = jpaModel(Cat.class, jpaMetamodel)
     .onComplete(cat -> /* do some cat action */) // This works
     .build();
 Cat cat = Instancio.of(catModel)
