@@ -17,7 +17,9 @@ package com.mobecker.instancio.jpa.testsuite;
 
 import static com.mobecker.instancio.jpa.InstancioJpa.jpaModel;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import com.mobecker.instancio.jpa.setting.JpaKeys;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -28,6 +30,8 @@ import javax.persistence.Persistence;
 import lombok.Getter;
 import lombok.Setter;
 import org.instancio.Instancio;
+import org.instancio.Model;
+import org.instancio.settings.Settings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -95,6 +99,14 @@ class InstancioJpaTest {
 
         // Then
         assertThat(orderSet).allSatisfy(order -> assertThat(order.getId()).isEqualTo(commonId));
+    }
+
+    @Test
+    void jpaModelWithSettings() {
+        Model<Order> orderModel = jpaModel(Order.class, emf.getMetamodel())
+            .withSettings(Settings.defaults().set(JpaKeys.USE_JPA_NULLABILITY, false))
+            .build();
+        assertThatNoException().isThrownBy(() -> Instancio.create(orderModel));
     }
 
     @Entity

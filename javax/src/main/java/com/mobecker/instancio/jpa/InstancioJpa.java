@@ -139,14 +139,18 @@ public final class InstancioJpa {
          * @since 1.0.0
          */
         public Model<T> build() {
-            Settings settings = this.settings == null
-                ? JpaKeys.defaults(metamodel).merge(Global.getPropertiesFileSettings()) : this.settings;
+            Settings settings;
+            if (this.settings == null) {
+                settings = JpaKeys.defaults(metamodel).merge(Global.getPropertiesFileSettings());
+            } else {
+                settings = Settings.from(this.settings).set(JpaKeys.METAMODEL, metamodel);
+            }
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
                 // TODO: Register selectors only when needed to avoid lenient() at this point
                 .lenient()
                 .set(JpaTransientAttributeSelector.jpaTransient(metamodel), null)
                 .set(JpaGeneratedIdSelector.jpaGeneratedId(metamodel), null)
-                .withSettings(settings.set(JpaKeys.METAMODEL, metamodel));
+                .withSettings(settings);
 
             if (settings.get(JpaKeys.USE_JPA_NULLABILITY)) {
                 instancioApi.withNullable(JpaOptionalAttributeSelector.jpaOptionalAttribute(metamodel));
