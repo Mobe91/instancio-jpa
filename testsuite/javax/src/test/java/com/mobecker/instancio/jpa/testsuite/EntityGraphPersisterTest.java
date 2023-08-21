@@ -123,7 +123,7 @@ class EntityGraphPersisterTest {
     void useJpaNullabilitySetting() {
         // Given
         Model<OrderWithDescription> model = jpaModel(OrderWithDescription.class, emf.getMetamodel())
-                .withSettings(Settings.defaults().set(JpaKeys.USE_JPA_NULLABILITY, false))
+                .withSettings(Settings.create().set(JpaKeys.USE_JPA_NULLABILITY, false))
                 .build();
 
         // When
@@ -143,7 +143,7 @@ class EntityGraphPersisterTest {
         });
         EntityWithNonInsertableAssociation entityWithNonInsertableAssociation = Instancio.of(
             jpaModel(EntityWithNonInsertableAssociation.class, emf.getMetamodel())
-                .withSettings(Settings.defaults().merge(JpaKeys.defaults(emf.getMetamodel())).set(Keys.ASSIGNMENT_TYPE, AssignmentType.METHOD))
+                .withSettings(Settings.create().set(Keys.ASSIGNMENT_TYPE, AssignmentType.METHOD))
                 .build()
         ).create();
 

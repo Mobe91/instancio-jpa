@@ -140,9 +140,11 @@ public final class InstancioJpa {
         public Model<T> build() {
             Settings settings;
             if (this.settings == null) {
-                settings = JpaKeys.defaults(metamodel);
+                settings = JpaKeys.defaults(metamodel)
+                    .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true);
             } else {
                 settings = Settings.from(this.settings).set(JpaKeys.METAMODEL, metamodel);
+                setJpaKeyDefaults(settings);
             }
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
                 // TODO: Register selectors only when needed to avoid lenient() at this point
@@ -177,6 +179,16 @@ public final class InstancioJpa {
                     }
                 })
                 .toModel();
+        }
+
+        private static void setJpaKeyDefaults(Settings settings) {
+            if (settings.get(JpaKeys.ENABLE_GENERATOR_PROVIDERS) == null) {
+                settings.set(JpaKeys.ENABLE_GENERATOR_PROVIDERS,
+                    JpaKeys.ENABLE_GENERATOR_PROVIDERS.defaultValue());
+            }
+            if (settings.get(JpaKeys.USE_JPA_NULLABILITY) == null) {
+                settings.set(JpaKeys.USE_JPA_NULLABILITY, JpaKeys.USE_JPA_NULLABILITY.defaultValue());
+            }
         }
     }
 }

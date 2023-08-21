@@ -16,6 +16,7 @@
 package com.mobecker.instancio.jpa.testsuite;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.instancio.Select.field;
 
 import com.mobecker.instancio.jpa.setting.JpaKeys;
 import java.util.List;
@@ -27,6 +28,7 @@ import javax.persistence.Persistence;
 import lombok.Getter;
 import lombok.Setter;
 import org.instancio.Instancio;
+import org.instancio.settings.Keys;
 import org.instancio.settings.Settings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -43,7 +45,9 @@ class InstancioJpaServiceProviderTest {
     @Test
     void longIdSequence() {
         // Given
-        Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
+        Settings settings = Settings.create()
+            .set(JpaKeys.METAMODEL, emf.getMetamodel())
+            .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true);
 
         // When
         List<OrderWithLongId> orders = Instancio.ofList(Instancio.of(OrderWithLongId.class)
@@ -58,7 +62,9 @@ class InstancioJpaServiceProviderTest {
     @Test
     void integerIdSequence() {
         // Given
-        Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
+        Settings settings = Settings.create()
+            .set(JpaKeys.METAMODEL, emf.getMetamodel())
+            .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true);
 
         // When
         List<OrderWithIntegerId> orders = Instancio.ofList(Instancio.of(OrderWithIntegerId.class)
@@ -73,7 +79,9 @@ class InstancioJpaServiceProviderTest {
     @Test
     void stringIdSequence() {
         // Given
-        Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
+        Settings settings = Settings.create()
+            .set(JpaKeys.METAMODEL, emf.getMetamodel())
+            .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true);
 
         // When
         List<OrderWithStringId> orders = Instancio.ofList(Instancio.of(OrderWithStringId.class)
@@ -88,7 +96,9 @@ class InstancioJpaServiceProviderTest {
     @Test
     void columnLength() {
         // Given
-        Settings settings = Settings.defaults().set(JpaKeys.METAMODEL, emf.getMetamodel());
+        Settings settings = Settings.create()
+            .set(JpaKeys.METAMODEL, emf.getMetamodel())
+            .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true);
 
         // When
         OrderWithColumnLength order = Instancio.create(Instancio.of(OrderWithColumnLength.class)
@@ -97,6 +107,25 @@ class InstancioJpaServiceProviderTest {
 
         // Then
         assertThat(order.getName()).hasSizeLessThanOrEqualTo(OrderWithColumnLength.COLUMN_LENGTH);
+    }
+
+    @Test
+    void disableInstancioServiceProvider() {
+        // Given
+        Settings baseSettings = JpaKeys.defaults(emf.getMetamodel());
+
+        // When
+        OrderWithColumnLength orderWithGeneratorProviders = Instancio.create(Instancio.of(OrderWithColumnLength.class)
+            .withSettings(Settings.from(baseSettings)
+                .set(Keys.STRING_MIN_LENGTH, OrderWithColumnLength.COLUMN_LENGTH + 1)
+                .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true))
+            .toModel());
+        OrderWithColumnLength orderWithoutGeneratorProviders = Instancio.create(Instancio.of(OrderWithColumnLength.class)
+            .withSettings(Settings.from(baseSettings)
+                .set(Keys.STRING_MIN_LENGTH, OrderWithColumnLength.COLUMN_LENGTH + 1))
+            .toModel());
+        assertThat(orderWithGeneratorProviders.getName()).hasSizeLessThanOrEqualTo(OrderWithColumnLength.COLUMN_LENGTH);
+        assertThat(orderWithoutGeneratorProviders.getName()).hasSizeGreaterThan(OrderWithColumnLength.COLUMN_LENGTH);
     }
 
     @Entity

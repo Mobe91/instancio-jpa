@@ -104,7 +104,7 @@ class InstancioJpaTest {
     @Test
     void jpaModelWithSettings() {
         Model<Order> orderModel = jpaModel(Order.class, emf.getMetamodel())
-            .withSettings(Settings.defaults().set(JpaKeys.USE_JPA_NULLABILITY, false))
+            .withSettings(Settings.create().set(JpaKeys.USE_JPA_NULLABILITY, false))
             .build();
         assertThatNoException().isThrownBy(() -> Instancio.create(orderModel));
     }

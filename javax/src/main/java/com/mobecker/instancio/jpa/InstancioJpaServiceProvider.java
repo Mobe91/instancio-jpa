@@ -51,12 +51,16 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
 
     private volatile Metamodel metamodel;
     private volatile String[] generatorProviderExclusions;
+    private volatile boolean generatorProvidersEnabled = true;
 
     @Override
     public void init(ServiceProviderContext context) {
         this.metamodel = context.getSettings().get(JpaKeys.METAMODEL);
         this.generatorProviderExclusions = convertGeneratorProviderExclusions(
             context.getSettings().get(JpaKeys.GENERATOR_PROVIDER_EXCLUSIONS));
+        Boolean generatorProvidersEnabled = context.getSettings().get(JpaKeys.ENABLE_GENERATOR_PROVIDERS);
+        this.generatorProvidersEnabled = generatorProvidersEnabled == null
+            ? JpaKeys.ENABLE_GENERATOR_PROVIDERS.defaultValue() : generatorProvidersEnabled;
     }
 
     private static String[] convertGeneratorProviderExclusions(@Nullable String rawExclusions) {
@@ -66,6 +70,9 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
 
     @Override
     public GeneratorProvider getGeneratorProvider() {
+        if (!generatorProvidersEnabled) {
+            return null;
+        }
         Map<Node, Generator<?>> contextualGenerators = new HashMap<>();
         return (node, generators) -> {
             Field field = node.getField();

@@ -45,10 +45,21 @@ public final class JpaKeys {
     /**
      * Specifies whether instancio-jpa should apply the nullability information provided by the JPA metamodel to
      * the Instancio model used for generating object instances.
-     * default is true; property name {@code useJpaNullability}.
+     * default is true; property name {@code jpa.useNullability}.
      */
     public static final SettingKey<Boolean> USE_JPA_NULLABILITY = register(
         "jpa.useNullability", Boolean.class, Boolean.TRUE, false);
+
+    /**
+     * Specifies whether instancio-jpa provided
+     * {@link org.instancio.spi.InstancioServiceProvider.GeneratorProvider}s should apply. This setting will be
+     * active for Instancio models created via
+     * {@link com.mobecker.instancio.jpa.InstancioJpa#jpaModel(Class, Metamodel)} unless overriding settings are
+     * supplied.
+     * default is false; property name {@code jpa.enableGeneratorProviders}.
+     */
+    public static final SettingKey<Boolean> ENABLE_GENERATOR_PROVIDERS = register(
+        "jpa.enableGeneratorProviders", Boolean.class, false, false);
 
     /**
      * A list of fully qualified Java type names with an optional field part to represent nodes that should not
@@ -58,7 +69,7 @@ public final class JpaKeys {
      * {@link org.instancio.spi.InstancioServiceProvider.GeneratorProvider}s you need to exclude these nodes from
      * being handled by the instancio-jpa provided
      * {@link org.instancio.spi.InstancioServiceProvider.GeneratorProvider}.
-     * default is null; property name {@code generatorProviderExclusions}.
+     * default is null; property name {@code jpa.generatorProviderExclusions}.
      */
     public static final SettingKey<String> GENERATOR_PROVIDER_EXCLUSIONS = register(
         "jpa.generatorProviderExclusions", String.class, null, true);
