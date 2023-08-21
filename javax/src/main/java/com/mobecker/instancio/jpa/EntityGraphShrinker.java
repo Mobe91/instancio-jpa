@@ -33,6 +33,8 @@ import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Starting from an entity root, traverses the entity graph depth-first and recursively prunes associations
@@ -44,6 +46,8 @@ import javax.persistence.metamodel.SingularAttribute;
  * @since 1.0.0
  */
 public class EntityGraphShrinker {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EntityGraphShrinker.class);
 
     private final Metamodel metamodel;
 
@@ -80,6 +84,7 @@ public class EntityGraphShrinker {
             if (attr instanceof SingularAttribute<?, ?> && attr.getPersistentAttributeType() != BASIC) {
                 shrink0(attrValue, visited);
                 if (attrValue != null && !isValid((SingularAttribute<?, ?>) attr, attrValue)) {
+                    LOG.debug("Assigning null to {} for node {}", attr, node);
                     setAttributeValue(node, attr, null);
                 }
             } else if (attr instanceof PluralAttribute<?, ?, ?>
@@ -93,6 +98,7 @@ public class EntityGraphShrinker {
                             Object attrMapValue = iterator.next();
                             shrink0(attrMapValue, visited);
                             if (!isValid(attrMapValue)) {
+                                LOG.debug("Removing value {} from map {} at node {}", attrMapValue, attrMap, node);
                                 iterator.remove();
                             }
                         }
@@ -106,6 +112,8 @@ public class EntityGraphShrinker {
                             Object attrCollectionElement = iterator.next();
                             shrink0(attrCollectionElement, visited);
                             if (!isValid(attrCollectionElement)) {
+                                LOG.debug("Removing element {} from collection {} at node {}",
+                                    attrCollectionElement, pluralAttribute, node);
                                 iterator.remove();
                             }
                         }
