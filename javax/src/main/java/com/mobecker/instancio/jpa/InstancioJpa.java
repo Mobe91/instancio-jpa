@@ -16,6 +16,7 @@
 
 package com.mobecker.instancio.jpa;
 
+import static com.mobecker.instancio.jpa.setting.JpaKeys.filterJpaKeys;
 import static org.instancio.Select.root;
 
 import com.mobecker.instancio.jpa.selector.JpaGeneratedIdSelector;
@@ -29,6 +30,8 @@ import org.instancio.Model;
 import org.instancio.OnCompleteCallback;
 import org.instancio.settings.Keys;
 import org.instancio.settings.Settings;
+import org.instancio.support.Global;
+import org.instancio.support.ThreadLocalSettings;
 
 /**
  * Instancio-jpa extension for creating persistable JPA entities based using the Instancio API.
@@ -138,14 +141,7 @@ public final class InstancioJpa {
          * @since 1.0.0
          */
         public Model<T> build() {
-            Settings settings;
-            if (this.settings == null) {
-                settings = JpaKeys.defaults(metamodel)
-                    .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true);
-            } else {
-                settings = Settings.from(this.settings).set(JpaKeys.METAMODEL, metamodel);
-                setJpaKeyDefaults(settings);
-            }
+            Settings settings = buildSettings();
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
                 // TODO: Register selectors only when needed to avoid lenient() at this point
                 .lenient()
@@ -181,7 +177,21 @@ public final class InstancioJpa {
                 .toModel();
         }
 
-        private static void setJpaKeyDefaults(Settings settings) {
+        private Settings buildSettings() {
+            Settings globalJpaSettings = filterJpaKeys(Global.getPropertiesFileSettings()
+                .merge(ThreadLocalSettings.getInstance().get()));
+            Settings settings;
+            if (this.settings == null) {
+                settings = globalJpaSettings;
+            } else {
+                settings = globalJpaSettings.merge(this.settings);
+            }
+            setJpaKeyDefaults(settings);
+            return settings;
+        }
+
+        private void setJpaKeyDefaults(Settings settings) {
+            settings.set(JpaKeys.METAMODEL, metamodel);
             if (settings.get(JpaKeys.ENABLE_GENERATOR_PROVIDERS) == null) {
                 settings.set(JpaKeys.ENABLE_GENERATOR_PROVIDERS,
                     JpaKeys.ENABLE_GENERATOR_PROVIDERS.defaultValue());

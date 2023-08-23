@@ -59,7 +59,7 @@ public final class JpaKeys {
      * default is false; property name {@code jpa.enableGeneratorProviders}.
      */
     public static final SettingKey<Boolean> ENABLE_GENERATOR_PROVIDERS = register(
-        "jpa.enableGeneratorProviders", Boolean.class, false, false);
+        "jpa.enableGeneratorProviders", Boolean.class, true, false);
 
     /**
      * A list of fully qualified Java type names with an optional field part to represent nodes that should not
@@ -100,6 +100,23 @@ public final class JpaKeys {
             }
         }
         return settings;
+    }
+
+    /**
+     * Returns new settings with only the instancio-jpa specific setting keys contained in the provided settings.
+     *
+     * @param settings the settings to filter
+     * @return a new settings instance with the filtered setting keys
+     */
+    public static Settings filterJpaKeys(Settings settings) {
+        Settings filteredSettings = Settings.create();
+        for (SettingKey<Object> key : all()) {
+            Object value = settings.get(key);
+            if (value != null) {
+                filteredSettings.set(key, value);
+            }
+        }
+        return filteredSettings;
     }
 
     private static <T> SettingKey<T> register(

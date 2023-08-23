@@ -59,8 +59,7 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
         this.generatorProviderExclusions = convertGeneratorProviderExclusions(
             context.getSettings().get(JpaKeys.GENERATOR_PROVIDER_EXCLUSIONS));
         Boolean generatorProvidersEnabled = context.getSettings().get(JpaKeys.ENABLE_GENERATOR_PROVIDERS);
-        this.generatorProvidersEnabled = generatorProvidersEnabled == null
-            ? JpaKeys.ENABLE_GENERATOR_PROVIDERS.defaultValue() : generatorProvidersEnabled;
+        this.generatorProvidersEnabled = generatorProvidersEnabled != null && generatorProvidersEnabled;
     }
 
     private static String[] convertGeneratorProviderExclusions(@Nullable String rawExclusions) {
