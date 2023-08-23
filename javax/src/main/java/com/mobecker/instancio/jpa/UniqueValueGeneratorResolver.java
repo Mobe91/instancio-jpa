@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.IdentifiableType;
@@ -42,48 +43,61 @@ import org.instancio.internal.generator.sequence.LongSequenceGenerator;
  *
  * @since 1.1.0
  */
-public class IdGeneratorResolver implements JpaAttributeGeneratorResolver {
+public class UniqueValueGeneratorResolver implements JpaAttributeGeneratorResolver {
 
-    private static final Map<Class<?>, Class<? extends Generator<?>>> ID_GENERATORS;
+    private static final Map<Class<?>, Class<? extends Generator<?>>> SEQ_GENERATORS;
 
     static {
-        Map<Class<?>, Class<? extends Generator<?>>> idGenerators = new HashMap<>(1);
-        idGenerators.put(Long.class, LongSequenceGenerator.class);
-        idGenerators.put(Integer.class, IntegerSequenceGenerator.class);
-        idGenerators.put(String.class, StringSequenceGenerator.class);
-        ID_GENERATORS = Collections.unmodifiableMap(idGenerators);
+        Map<Class<?>, Class<? extends Generator<?>>> sequenceGenerators = new HashMap<>(1);
+        sequenceGenerators.put(Long.class, LongSequenceGenerator.class);
+        sequenceGenerators.put(Integer.class, IntegerSequenceGenerator.class);
+        sequenceGenerators.put(String.class, StringSequenceGenerator.class);
+        SEQ_GENERATORS = Collections.unmodifiableMap(sequenceGenerators);
     }
 
     @Override
     public Generator<?> getGenerator(
         Node node, Generators generators, Attribute<?, ?> attribute, GeneratorResolverContext context) {
-        ManagedType<?> declaringType = attribute.getDeclaringType();
-        if (declaringType instanceof IdentifiableType) {
-            SingularAttribute<?, ?> idAttr = resolveIdAttribute(
-                (IdentifiableType<?>) declaringType, attribute.getName());
-            if (Objects.equals(attribute, idAttr) && getAnnotation(idAttr, GeneratedValue.class) == null) {
-                return resolveIdGenerator(context.getContextualGenerators(), node, idAttr.getJavaType());
-            }
+        if (isBasicUnique(attribute) || isNonGeneratedIdAttribute(attribute)) {
+            return resolveIdGenerator(context.getContextualGenerators(), node, attribute.getJavaType());
         }
         return null;
     }
 
+    private static boolean isBasicUnique(Attribute<?, ?> attribute) {
+        if (attribute.getPersistentAttributeType() == Attribute.PersistentAttributeType.BASIC) {
+            Column column = getAnnotation(attribute, Column.class);
+            return column != null && column.unique();
+        }
+        return false;
+    }
+
+    private static boolean isNonGeneratedIdAttribute(Attribute<?, ?> attribute) {
+        ManagedType<?> declaringType = attribute.getDeclaringType();
+        if (declaringType instanceof IdentifiableType) {
+            SingularAttribute<?, ?> idAttr = resolveIdAttribute(
+                (IdentifiableType<?>) declaringType, attribute.getName());
+            return Objects.equals(attribute, idAttr) && getAnnotation(idAttr, GeneratedValue.class) == null;
+        }
+        return false;
+    }
+
     private Generator<?> resolveIdGenerator(
-        Map<Node, Generator<?>> contextualGenerators, Node node, Class<?> idClass
+        Map<Node, Generator<?>> contextualGenerators, Node node, Class<?> fieldType
     ) {
         Generator<?> generator = contextualGenerators.get(node);
         if (generator != null) {
             return generator;
         }
-        generator = instantiateIdGenerator(idClass);
+        generator = instantiateIdGenerator(fieldType);
         if (generator != null) {
             contextualGenerators.put(node, generator);
         }
         return generator;
     }
 
-    private static Generator<?> instantiateIdGenerator(Class<?> idClass) {
-        Class<?> generatorClass = ID_GENERATORS.get(idClass);
+    private static Generator<?> instantiateIdGenerator(Class<?> fieldType) {
+        Class<?> generatorClass = SEQ_GENERATORS.get(fieldType);
         if (generatorClass != null) {
             try {
                 Constructor<?> constructor = generatorClass.getConstructor();

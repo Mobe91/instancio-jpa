@@ -16,7 +16,6 @@
 package com.mobecker.instancio.jpa.testsuite;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.instancio.Select.field;
 
 import com.mobecker.instancio.jpa.setting.JpaKeys;
 import java.util.List;
@@ -28,11 +27,14 @@ import javax.persistence.Persistence;
 import lombok.Getter;
 import lombok.Setter;
 import org.instancio.Instancio;
+import org.instancio.junit.InstancioExtension;
 import org.instancio.settings.Keys;
 import org.instancio.settings.Settings;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(InstancioExtension.class)
 class InstancioJpaServiceProviderTest {
 
     private static EntityManagerFactory emf;
@@ -43,7 +45,7 @@ class InstancioJpaServiceProviderTest {
     }
 
     @Test
-    void longIdSequence() {
+    void longId() {
         // Given
         Settings settings = Settings.create()
             .set(JpaKeys.METAMODEL, emf.getMetamodel())
@@ -60,7 +62,7 @@ class InstancioJpaServiceProviderTest {
     }
 
     @Test
-    void integerIdSequence() {
+    void integerId() {
         // Given
         Settings settings = Settings.create()
             .set(JpaKeys.METAMODEL, emf.getMetamodel())
@@ -77,7 +79,7 @@ class InstancioJpaServiceProviderTest {
     }
 
     @Test
-    void stringIdSequence() {
+    void stringId() {
         // Given
         Settings settings = Settings.create()
             .set(JpaKeys.METAMODEL, emf.getMetamodel())
@@ -91,6 +93,23 @@ class InstancioJpaServiceProviderTest {
         // Then
         assertThat(orders.get(0).getId()).isEqualTo("1");
         assertThat(orders.get(1).getId()).isEqualTo("2");
+    }
+
+    @Test
+    void uniqueString() {
+        // Given
+        Settings settings = Settings.create()
+            .set(JpaKeys.METAMODEL, emf.getMetamodel())
+            .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true);
+
+        // When
+        List<OrderWithUniqueString> orders = Instancio.ofList(Instancio.of(OrderWithUniqueString.class)
+            .withSettings(settings)
+            .toModel()).size(2).create();
+
+        // Then
+        assertThat(orders.get(0).getUniqueValue()).isEqualTo("1");
+        assertThat(orders.get(1).getUniqueValue()).isEqualTo("2");
     }
 
     @Test
@@ -117,12 +136,12 @@ class InstancioJpaServiceProviderTest {
         // When
         OrderWithColumnLength orderWithGeneratorProviders = Instancio.create(Instancio.of(OrderWithColumnLength.class)
             .withSettings(Settings.from(baseSettings)
-                .set(Keys.STRING_MIN_LENGTH, OrderWithColumnLength.COLUMN_LENGTH + 1)
-                .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, true))
+                .set(Keys.STRING_MIN_LENGTH, OrderWithColumnLength.COLUMN_LENGTH + 1))
             .toModel());
         OrderWithColumnLength orderWithoutGeneratorProviders = Instancio.create(Instancio.of(OrderWithColumnLength.class)
             .withSettings(Settings.from(baseSettings)
-                .set(Keys.STRING_MIN_LENGTH, OrderWithColumnLength.COLUMN_LENGTH + 1))
+                .set(Keys.STRING_MIN_LENGTH, OrderWithColumnLength.COLUMN_LENGTH + 1)
+                .set(JpaKeys.ENABLE_GENERATOR_PROVIDERS, false))
             .toModel());
         assertThat(orderWithGeneratorProviders.getName()).hasSizeLessThanOrEqualTo(OrderWithColumnLength.COLUMN_LENGTH);
         assertThat(orderWithoutGeneratorProviders.getName()).hasSizeGreaterThan(OrderWithColumnLength.COLUMN_LENGTH);
@@ -150,6 +169,16 @@ class InstancioJpaServiceProviderTest {
     public static class OrderWithStringId {
         @Id
         private String id;
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    public static class OrderWithUniqueString {
+        @Id
+        private Long id;
+        @Column(unique = true)
+        private String uniqueValue;
     }
 
     @Entity

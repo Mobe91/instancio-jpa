@@ -91,6 +91,7 @@
         <class>com.mobecker.instancio.jpa.testsuite.InstancioJpaServiceProviderTest$OrderWithIntegerId</class>
         <class>com.mobecker.instancio.jpa.testsuite.InstancioJpaServiceProviderTest$OrderWithLongId</class>
         <class>com.mobecker.instancio.jpa.testsuite.InstancioJpaServiceProviderTest$OrderWithStringId</class>
+        <class>com.mobecker.instancio.jpa.testsuite.InstancioJpaServiceProviderTest$OrderWithUniqueString</class>
         <class>com.mobecker.instancio.jpa.testsuite.InstancioJpaServiceProviderTest$OrderWithColumnLength</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>

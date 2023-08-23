@@ -45,7 +45,7 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
 
     private static final List<JpaAttributeGeneratorResolver> JPA_ATTRIBUTE_GENERATOR_RESOLVERS = Arrays.asList(
         // Order matters
-        new IdGeneratorResolver(),
+        new UniqueValueGeneratorResolver(),
         new StringGeneratorResolver()
     );
 
