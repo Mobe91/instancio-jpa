@@ -128,27 +128,31 @@ public final class JpaMetamodelUtil {
     private static String resolveMappedBy(Field field) {
         OneToOne oneToOne = field.getAnnotation(OneToOne.class);
         if (oneToOne != null) {
-            return oneToOne.mappedBy();
+            return nullIfEmpty(oneToOne.mappedBy());
         }
         OneToMany oneToMany = field.getAnnotation(OneToMany.class);
         if (oneToMany != null) {
-            return oneToMany.mappedBy();
+            return nullIfEmpty(oneToMany.mappedBy());
         }
         ManyToMany manyToMany = field.getAnnotation(ManyToMany.class);
-        return manyToMany == null || manyToMany.mappedBy().isEmpty() ? null : manyToMany.mappedBy();
+        return manyToMany == null ? null : nullIfEmpty(manyToMany.mappedBy());
     }
 
     private static String resolveMappedBy(Method method) {
         OneToOne oneToOne = method.getAnnotation(OneToOne.class);
         if (oneToOne != null) {
-            return oneToOne.mappedBy();
+            return nullIfEmpty(oneToOne.mappedBy());
         }
         OneToMany oneToMany = method.getAnnotation(OneToMany.class);
         if (oneToMany != null) {
-            return oneToMany.mappedBy();
+            return nullIfEmpty(oneToMany.mappedBy());
         }
         ManyToMany manyToMany = method.getAnnotation(ManyToMany.class);
-        return manyToMany == null || manyToMany.mappedBy().isEmpty() ? null : manyToMany.mappedBy();
+        return manyToMany == null ? null : nullIfEmpty(manyToMany.mappedBy());
+    }
+
+    private static String nullIfEmpty(String s) {
+        return s.isEmpty() ? null : s;
     }
 
     /**

@@ -125,7 +125,7 @@ class EntityGraphAssociationFixerTest {
 
         // Then
         assertThat(order1.getNext()).isEqualTo(order2);
-        assertThat(order2.getPrevious()).isNull();
+        assertThat(order2.getPrevious()).isEqualTo(order1);
     }
 
     @Test
