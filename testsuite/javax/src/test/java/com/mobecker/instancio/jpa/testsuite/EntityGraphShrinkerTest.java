@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
@@ -141,6 +142,18 @@ class EntityGraphShrinkerTest {
         assertThat(entity.getMap()).isEqualTo(map);
     }
 
+    @Test
+    void nonInsertableNullValue() {
+        // Given
+        EntityWithMandatoryNonInsertableValue e = new EntityWithMandatoryNonInsertableValue();
+        e.setId(1L);
+
+        // When / Then
+        assertThatNoException().isThrownBy(() -> entityGraphShrinker.shrink(e));
+        assertThat(e.getId()).isNotNull();
+        assertThat(e.getNonInsertable()).isNull();
+    }
+
     @Entity
     @Getter
     @Setter
@@ -175,5 +188,15 @@ class EntityGraphShrinkerTest {
         private List<String> list = new ArrayList<>(0);
         @ElementCollection
         private Map<String, String> map = new HashMap<>(0);
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    public static class EntityWithMandatoryNonInsertableValue {
+        @Id
+        private Long id;
+        @Column(nullable = false, insertable = false)
+        private String nonInsertable;
     }
 }

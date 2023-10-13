@@ -16,6 +16,7 @@
 
 package com.mobecker.instancio.jpa;
 
+import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.isInsertable;
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.resolveAttributeValue;
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.setAttributeValue;
 import static javax.persistence.metamodel.Attribute.PersistentAttributeType.BASIC;
@@ -132,7 +133,8 @@ public class EntityGraphShrinker {
         if (attribute.getPersistentAttributeType() != BASIC && attributeValue != null) {
             return isValid(attributeValue);
         }
-        return attribute.isOptional();
+
+        return isValueValidForSingularAttribute(attribute, attributeValue);
     }
 
     private boolean isValid(Object node) {
@@ -150,7 +152,7 @@ public class EntityGraphShrinker {
             visited.remove(attributeValue);
             return isValid;
         }
-        return attributeValue != null || attribute.isId() || attribute.isOptional();
+        return isValueValidForSingularAttribute(attribute, attributeValue);
     }
 
     private boolean isValid0(Object node, Set<Object> visited) {
@@ -169,5 +171,12 @@ public class EntityGraphShrinker {
         });
         visited.remove(node);
         return isValid;
+    }
+
+    private static boolean isValueValidForSingularAttribute(SingularAttribute<?, ?> attribute, Object attributeValue) {
+        return attributeValue != null
+            || attribute.isId()
+            || attribute.isOptional()
+            || !isInsertable(attribute);
     }
 }

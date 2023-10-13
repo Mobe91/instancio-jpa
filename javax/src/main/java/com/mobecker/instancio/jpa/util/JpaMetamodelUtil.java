@@ -216,6 +216,8 @@ public final class JpaMetamodelUtil {
      *
      * @param attribute the JPA attribute to check.
      * @return true if the attribute is insertable, else false.
+     *
+     * @since 1.1.0
      */
     public static boolean isInsertable(Attribute<?, ?> attribute) {
         Column column = getAnnotation(attribute, Column.class);

@@ -80,6 +80,7 @@
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphShrinkerTest$Order</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphShrinkerTest$OrderItem</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphShrinkerTest$EntityWithElementCollections</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphShrinkerTest$EntityWithMandatoryNonInsertableValue</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
             <property name="javax.persistence.jdbc.driver" value="org.h2.Driver" />
