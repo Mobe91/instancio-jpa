@@ -13,5 +13,6 @@
         <module>javax</module>
         <module>jakarta</module>
         <module>jakarta-runner</module>
+        <module>hibernate6</module>
     </modules>
 </project>

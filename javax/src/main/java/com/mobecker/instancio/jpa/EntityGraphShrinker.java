@@ -16,6 +16,7 @@
 
 package com.mobecker.instancio.jpa;
 
+import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.isHibernateTenantId;
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.isInsertable;
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.resolveAttributeValue;
 import static com.mobecker.instancio.jpa.util.JpaMetamodelUtil.setAttributeValue;
@@ -177,6 +178,7 @@ public class EntityGraphShrinker {
         return attributeValue != null
             || attribute.isId()
             || attribute.isOptional()
-            || !isInsertable(attribute);
+            || !isInsertable(attribute)
+            || isHibernateTenantId(attribute);
     }
 }

@@ -145,13 +145,13 @@ class EntityGraphShrinkerTest {
     @Test
     void nonInsertableNullValue() {
         // Given
-        EntityWithMandatoryNonInsertableValue e = new EntityWithMandatoryNonInsertableValue();
-        e.setId(1L);
+        EntityWithMandatoryNonInsertableValue entity = new EntityWithMandatoryNonInsertableValue();
+        entity.setId(1L);
 
         // When / Then
-        assertThatNoException().isThrownBy(() -> entityGraphShrinker.shrink(e));
-        assertThat(e.getId()).isNotNull();
-        assertThat(e.getNonInsertable()).isNull();
+        assertThatNoException().isThrownBy(() -> entityGraphShrinker.shrink(entity));
+        assertThat(entity.getId()).isNotNull();
+        assertThat(entity.getNonInsertable()).isNull();
     }
 
     @Entity
