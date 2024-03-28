@@ -24,6 +24,8 @@
     <persistence-unit name="EntityGraphAssociationFixerTestPu" transaction-type="RESOURCE_LOCAL">
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$Order</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$OrderItem</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$OrderInformation</class>
+        <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$OrderDocument</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$Person</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyHolder</class>
         <class>com.mobecker.instancio.jpa.testsuite.EntityGraphAssociationFixerTest$MapWithMapKeyValue</class>

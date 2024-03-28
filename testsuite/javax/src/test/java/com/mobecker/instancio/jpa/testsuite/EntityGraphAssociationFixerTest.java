@@ -129,6 +129,24 @@ class EntityGraphAssociationFixerTest {
     }
 
     @Test
+    void oneToOne_ambiguousMappedBy() {
+        // Given
+        Order order = new Order();
+        OrderInformation orderInformation = new OrderInformation();
+        OrderDocument orderDocument = new OrderDocument();
+        order.setOrderInformation(orderInformation);
+        orderInformation.setOrderDocument(orderDocument);
+
+        // When
+        entityGraphAssociationFixer.fixAssociations(order);
+
+        // Then
+        assertThat(order.getOrderInformation()).isEqualTo(orderInformation);
+        assertThat(orderInformation.getOrderDocument()).isEqualTo(orderDocument);
+        assertThat(orderDocument.getOrderInformation()).isEqualTo(orderInformation);
+    }
+
+    @Test
     void manyToOne() {
         // Given
         OrderItem orderItem1 = new OrderItem(1L);
@@ -268,6 +286,8 @@ class EntityGraphAssociationFixerTest {
         private Set<Person> contacts = new HashSet<>(0);
         @ManyToMany
         private Map<Long, Person> contactsById = new HashMap<>(0);
+        @OneToOne
+        private OrderInformation orderInformation;
 
         public Order(Long id) {
             this.id = id;
@@ -291,6 +311,33 @@ class EntityGraphAssociationFixerTest {
         public OrderItem(Long id) {
             this.id = id;
         }
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString(onlyExplicitlyIncluded = true)
+    public static class OrderInformation {
+        @Id
+        @ToString.Include
+        private Long id;
+        @OneToOne(mappedBy = "orderInformation")
+        private OrderDocument orderDocument;
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @ToString(onlyExplicitlyIncluded = true)
+    public static class OrderDocument {
+        @Id
+        @ToString.Include
+        private Long id;
+
+        @OneToOne
+        private OrderInformation orderInformation;
     }
 
     @Entity

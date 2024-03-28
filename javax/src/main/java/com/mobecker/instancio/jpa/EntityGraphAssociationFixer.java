@@ -145,7 +145,8 @@ public class EntityGraphAssociationFixer {
                     .ifPresent(associationEnd ->
                         setAttributeValue(associationEndValue, associationEnd, associationStartValue));
             } else {
-                findOneToOneWithMappedBy(associationEndType, associationStart.getName())
+                findOneToOneWithMappedBy(associationStart.getDeclaringType(), associationEndType,
+                    associationStart.getName())
                     .forEach(associationEnd ->
                         setAttributeValue(associationEndValue, associationEnd, associationStartValue));
             }
@@ -357,11 +358,13 @@ public class EntityGraphAssociationFixer {
             .collect(Collectors.toList());
     }
 
-    private static <T> Iterable<Attribute<? super T, ?>> findOneToOneWithMappedBy(
-        ManagedType<T> managedType, String mappedBy
+    private static <T, D, X extends D> Iterable<Attribute<D, T>> findOneToOneWithMappedBy(
+        ManagedType<T> targetType, ManagedType<X> managedType, String mappedBy
     ) {
         return managedType.getAttributes().stream()
             .filter(attr -> attr.getPersistentAttributeType() == ONE_TO_ONE)
+            .filter(attr -> attr.getJavaType().equals(targetType.getJavaType()))
+            .map(attr -> (Attribute<D, T>) attr)
             .filter(attr -> mappedBy.equals(resolveMappedBy(attr.getJavaMember())))
             .collect(Collectors.toList());
     }
