@@ -78,18 +78,7 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
             if (field != null && metamodel != null && !isExcluded(field)) {
                 EntityType<?> entityType;
                 try {
-                    // Actually, we would need sth like node.getParent().getTargetClass() at this point but the
-                    // Instancio API currently does not expose this information. The implication of this is that
-                    // annotations on JPA id attributes are not read correctly in some scenarios involving
-                    // inheritance (see https://github.com/instancio/instancio/pull/528#issuecomment-1496935873).
-                    // However, in this specific case it is not a problem because of
-                    // org.instancio.jpa.selector.JpaGeneratedIdSelector that reads the annotations correctly.
-                    // So when an id attribtue is annotated with @GeneratedValue the JpaGeneratedIdSelector will
-                    // pick it up and Instancio.set's the attribute to null in which case this generator provider
-                    // will not be invoked. On the other hand, if there is no @GeneratedValue annotation present
-                    // this generator provider will kick in.
-                    entityType = metamodel.entity(
-                        field.getDeclaringClass());
+                    entityType = metamodel.entity(node.getParent().getTargetClass());
                 } catch (IllegalArgumentException e) {
                     LOG.trace(null, e);
                     return null;

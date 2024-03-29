@@ -16,6 +16,7 @@
 
 package com.mobecker.instancio.jpa.selector;
 
+import java.util.Collections;
 import java.util.function.Predicate;
 import org.instancio.internal.nodes.InternalNode;
 
@@ -25,6 +26,6 @@ abstract class PredicateSelectorImpl extends org.instancio.internal.selectors.Pr
     PredicateSelectorImpl(
         final Predicate<InternalNode> nodePredicate, final String apiInvocationDescription
     ) {
-        super(PRIORITY, nodePredicate, null, apiInvocationDescription, new Throwable());
+        super(PRIORITY, nodePredicate, Collections.emptyList(), null, true, apiInvocationDescription, new Throwable());
     }
 }

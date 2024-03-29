@@ -143,8 +143,6 @@ public final class InstancioJpa {
         public Model<T> build() {
             Settings settings = buildSettings();
             InstancioApi<T> instancioApi = Instancio.of(entityClass)
-                // TODO: Register selectors only when needed to avoid lenient() at this point
-                .lenient()
                 .set(JpaTransientAttributeSelector.jpaTransient(metamodel), null)
                 .set(JpaGeneratedIdSelector.jpaGeneratedId(metamodel), null)
                 .withSettings(settings);

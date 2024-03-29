@@ -53,6 +53,12 @@ MyEntity myEntity = Instancio.of(myEntityModel).create();
 persister.persist(myEntity);
 ```
 
+# Instancio compatibility
+
+No compatibility testing between releases of Instancio and instancio-jpa are currently performed. Users are 
+recommended to stick to the Instancio dependency version as declared in the root pom.xml of instancio-jpa for a 
+particular instance-jpa release.
+
 # Configuration
 
 Just like Instancio, instancio-jpa supports programmatic and properties file based configuration.

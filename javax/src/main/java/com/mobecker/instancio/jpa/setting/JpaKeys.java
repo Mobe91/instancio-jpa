@@ -40,7 +40,7 @@ public final class JpaKeys {
      * default is null; property name {@code jpaMetamodel}.
      */
     public static final SettingKey<Metamodel> METAMODEL = register(
-        null, Metamodel.class, null, false);
+        null, Metamodel.class, null, false, false);
 
     /**
      * Specifies whether instancio-jpa should apply the nullability information provided by the JPA metamodel to
@@ -48,7 +48,7 @@ public final class JpaKeys {
      * default is true; property name {@code jpa.useNullability}.
      */
     public static final SettingKey<Boolean> USE_JPA_NULLABILITY = register(
-        "jpa.useNullability", Boolean.class, Boolean.TRUE, false);
+        "jpa.useNullability", Boolean.class, Boolean.TRUE, false, false);
 
     /**
      * Specifies whether instancio-jpa provided
@@ -59,7 +59,7 @@ public final class JpaKeys {
      * default is false; property name {@code jpa.enableGeneratorProviders}.
      */
     public static final SettingKey<Boolean> ENABLE_GENERATOR_PROVIDERS = register(
-        "jpa.enableGeneratorProviders", Boolean.class, true, false);
+        "jpa.enableGeneratorProviders", Boolean.class, true, false, false);
 
     /**
      * A list of fully qualified Java type names with an optional field part to represent nodes that should not
@@ -72,7 +72,7 @@ public final class JpaKeys {
      * default is null; property name {@code jpa.generatorProviderExclusions}.
      */
     public static final SettingKey<String> GENERATOR_PROVIDER_EXCLUSIONS = register(
-        "jpa.generatorProviderExclusions", String.class, null, true);
+        "jpa.generatorProviderExclusions", String.class, null, true, false);
 
     /**
      * Get a list of all JpaKeys.
@@ -123,10 +123,11 @@ public final class JpaKeys {
         final String propertyKey,
         final Class<T> type,
         @javax.annotation.Nullable final Object defaultValue,
-        final boolean allowsNullValue) {
+        final boolean allowsNullValue,
+        final boolean allowsNegative) {
 
         final SettingKey<T> settingKey = new InternalKey<>(
-            propertyKey, type, defaultValue, null, allowsNullValue);
+            propertyKey, type, defaultValue, null, allowsNullValue, allowsNegative);
 
         ALL_KEYS.add((SettingKey<Object>) settingKey);
         return settingKey;
