@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.Persistence;
 import lombok.Getter;
 import lombok.Setter;
@@ -109,10 +110,17 @@ class InstancioJpaTest {
         assertThatNoException().isThrownBy(() -> Instancio.create(orderModel));
     }
 
+    @MappedSuperclass
+    @Getter
+    @Setter
+    public static class BaseOrder {
+        private Long position;
+    }
+
     @Entity
     @Getter
     @Setter
-    public static class Order {
+    public static class Order extends BaseOrder {
         @Id
         private Long id;
     }

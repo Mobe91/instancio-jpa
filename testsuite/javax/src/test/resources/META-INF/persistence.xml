@@ -104,6 +104,7 @@
         </properties>
     </persistence-unit>
     <persistence-unit name="InstancioJpaTestPu" transaction-type="RESOURCE_LOCAL">
+        <class>com.mobecker.instancio.jpa.testsuite.InstancioJpaTest$BaseOrder</class>
         <class>com.mobecker.instancio.jpa.testsuite.InstancioJpaTest$Order</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>

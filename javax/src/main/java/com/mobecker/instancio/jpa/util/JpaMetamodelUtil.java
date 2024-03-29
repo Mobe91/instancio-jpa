@@ -191,18 +191,22 @@ public final class JpaMetamodelUtil {
     /**
      * Resolves a JPA id attribute by entity type and attribute name.
      *
-     * @param entityType the JPA entity type
+     * @param identifiableType the JPA entity type
      * @param attributeName the JPA attribute name
      * @return the JPA attribute matching the specified attribute name, or {@code null} if either no attribute with
      *     the given name exists for the entity type or the matching attribute is not an id attribute.
      * @since 1.0.0
      */
-    public static SingularAttribute<?, ?> resolveIdAttribute(IdentifiableType<?> entityType, String attributeName) {
-        if (entityType.hasSingleIdAttribute()) {
-            SingularAttribute<?, ?> attr = getSingleIdAttribute(entityType);
+    public static SingularAttribute<?, ?> resolveIdAttribute(
+        IdentifiableType<?> identifiableType, String attributeName
+    ) {
+        if (identifiableType.getIdType() == null) {
+            return null;
+        } else if (identifiableType.hasSingleIdAttribute()) {
+            SingularAttribute<?, ?> attr = getSingleIdAttribute(identifiableType);
             return attr.getName().equals(attributeName) ? attr : null;
         } else {
-            return entityType.getIdClassAttributes().stream()
+            return identifiableType.getIdClassAttributes().stream()
                 .filter(attr -> attr.getName().equals(attributeName))
                 .findAny()
                 .orElse(null);
