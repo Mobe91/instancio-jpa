@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
@@ -66,8 +67,10 @@ public class EntityGraphShrinker {
      * See {@link EntityGraphShrinker}.
      *
      * @param entity JPA entity
+     * @throws NullPointerException if the JPA entity is null
      */
     public void shrink(Object entity) {
+        Objects.requireNonNull(entity, "Entity must not be null");
         Set<Object> visited = new HashSet<>();
         shrink0(entity, visited);
         if (!isValid(entity)) {
@@ -76,16 +79,19 @@ public class EntityGraphShrinker {
     }
 
     private void shrink0(Object node, Set<Object> visited) {
-        if (node == null || visited.contains(node)) {
+        if (visited.contains(node)) {
             return;
         }
         visited.add(node);
         ManagedType<?> managedType = metamodel.managedType(node.getClass());
         managedType.getAttributes().forEach(attr -> {
             Object attrValue = resolveAttributeValue(node, attr);
+            if (attrValue == null) {
+                return;
+            }
             if (attr instanceof SingularAttribute<?, ?> && attr.getPersistentAttributeType() != BASIC) {
                 shrink0(attrValue, visited);
-                if (attrValue != null && !isValid((SingularAttribute<?, ?>) attr, attrValue)) {
+                if (!isValid((SingularAttribute<?, ?>) attr, attrValue)) {
                     LOG.debug("Assigning null to {} for node {}", attr, node);
                     setAttributeValue(node, attr, null);
                 }
@@ -94,30 +100,26 @@ public class EntityGraphShrinker {
                 PluralAttribute<?, ?, ?> pluralAttribute = (PluralAttribute<?, ?, ?>) attr;
                 if (pluralAttribute.getCollectionType() == PluralAttribute.CollectionType.MAP) {
                     Map<?, ?> attrMap = (Map<?, ?>) attrValue;
-                    if (attrMap != null) {
-                        Iterator<?> iterator = attrMap.values().iterator();
-                        while (iterator.hasNext()) {
-                            Object attrMapValue = iterator.next();
-                            shrink0(attrMapValue, visited);
-                            if (!isValid(attrMapValue)) {
-                                LOG.debug("Removing value {} from map {} at node {}", attrMapValue, attrMap, node);
-                                iterator.remove();
-                            }
+                    Iterator<?> iterator = attrMap.values().iterator();
+                    while (iterator.hasNext()) {
+                        Object attrMapValue = iterator.next();
+                        shrink0(attrMapValue, visited);
+                        if (!isValid(attrMapValue)) {
+                            LOG.debug("Removing value {} from map {} at node {}", attrMapValue, attrMap, node);
+                            iterator.remove();
                         }
                     }
                 } else if (pluralAttribute.getElementType().getPersistenceType() == ENTITY
                     || pluralAttribute.getElementType().getPersistenceType() == EMBEDDABLE) {
                     Collection<?> attrCollection = (Collection<?>) attrValue;
-                    if (attrCollection != null) {
-                        Iterator<?> iterator = attrCollection.iterator();
-                        while (iterator.hasNext()) {
-                            Object attrCollectionElement = iterator.next();
-                            shrink0(attrCollectionElement, visited);
-                            if (!isValid(attrCollectionElement)) {
-                                LOG.debug("Removing element {} from collection {} at node {}",
-                                    attrCollectionElement, pluralAttribute, node);
-                                iterator.remove();
-                            }
+                    Iterator<?> iterator = attrCollection.iterator();
+                    while (iterator.hasNext()) {
+                        Object attrCollectionElement = iterator.next();
+                        shrink0(attrCollectionElement, visited);
+                        if (!isValid(attrCollectionElement)) {
+                            LOG.debug("Removing element {} from collection {} at node {}",
+                                attrCollectionElement, pluralAttribute, node);
+                            iterator.remove();
                         }
                     }
                 } else if (pluralAttribute.getElementType().getPersistenceType() == MAPPED_SUPERCLASS) {
@@ -129,49 +131,28 @@ public class EntityGraphShrinker {
         visited.remove(node);
     }
 
-    // TODO: we could maybe optimize isValid to not always traverse the whole tree
     private boolean isValid(SingularAttribute<?, ?> attribute, Object attributeValue) {
         if (attribute.getPersistentAttributeType() != BASIC && attributeValue != null) {
-            return isValid(attributeValue);
+            // We return true here and do not perform a deep validity check on the attribute value. This is
+            // sufficient because the shrinking algorithm works backwards from the "leaves" of the graph to the
+            // root and checks the validity of attribute values at each level. So the validity of a non-null
+            // attributeValue will already have been checked at this point.
+            return true;
         }
 
         return isValueValidForSingularAttribute(attribute, attributeValue);
     }
 
     private boolean isValid(Object node) {
-        Set<Object> visited = new HashSet<>();
-        return isValid0(node, visited);
-    }
-
-    private boolean isValid0(SingularAttribute<?, ?> attribute, Object attributeValue, Set<Object> visited) {
-        if (attribute.getPersistentAttributeType() != BASIC && attributeValue != null) {
-            if (visited.contains(attributeValue)) {
-                return true;
-            }
-            visited.add(attributeValue);
-            boolean isValid = isValid0(attributeValue, visited);
-            visited.remove(attributeValue);
-            return isValid;
-        }
-        return isValueValidForSingularAttribute(attribute, attributeValue);
-    }
-
-    private boolean isValid0(Object node, Set<Object> visited) {
-        if (visited.contains(node)) {
-            return true;
-        }
-        visited.add(node);
         ManagedType<?> managedType = metamodel.managedType(node.getClass());
-        boolean isValid = managedType.getAttributes().stream().allMatch(attr -> {
+        return managedType.getAttributes().stream().allMatch(attr -> {
             Object attrValue = resolveAttributeValue(node, attr);
             if (attr instanceof SingularAttribute<?, ?>) {
-                return isValid0((SingularAttribute<?, ?>) attr, attrValue, visited);
+                return isValid((SingularAttribute<?, ?>) attr, attrValue);
             } else {
                 return true;
             }
         });
-        visited.remove(node);
-        return isValid;
     }
 
     private static boolean isValueValidForSingularAttribute(SingularAttribute<?, ?> attribute, Object attributeValue) {

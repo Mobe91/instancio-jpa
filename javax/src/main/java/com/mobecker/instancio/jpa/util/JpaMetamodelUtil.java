@@ -40,12 +40,12 @@ import javax.persistence.metamodel.SingularAttribute;
  */
 public final class JpaMetamodelUtil {
 
-    private static final Class<?> HIBERNATE_TENANT_ID_ANNOTATION;
+    private static final Class<Annotation> HIBERNATE_TENANT_ID_ANNOTATION;
 
     static {
-        Class<?> tenantIdAnnotation;
+        Class<Annotation> tenantIdAnnotation;
         try {
-            tenantIdAnnotation = Class.forName("org.hibernate.annotations.TenantId");
+            tenantIdAnnotation = (Class<Annotation>) Class.forName("org.hibernate.annotations.TenantId");
         } catch (ClassNotFoundException e) {
             tenantIdAnnotation = null;
         }
@@ -233,7 +233,7 @@ public final class JpaMetamodelUtil {
      */
     public static boolean isHibernateTenantId(Attribute<?, ?> attribute) {
         return HIBERNATE_TENANT_ID_ANNOTATION
-            != null && getAnnotation(attribute, (Class) HIBERNATE_TENANT_ID_ANNOTATION) != null;
+            != null && getAnnotation(attribute, HIBERNATE_TENANT_ID_ANNOTATION) != null;
     }
 
     /**
