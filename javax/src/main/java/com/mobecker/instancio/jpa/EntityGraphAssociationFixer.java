@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.persistence.JoinColumn;
 import javax.persistence.MapKey;
 import javax.persistence.MapKeyJoinColumn;
@@ -59,14 +60,19 @@ public class EntityGraphAssociationFixer {
 
     private static final Logger LOG = LoggerFactory.getLogger(EntityGraphAssociationFixer.class);
     private final Metamodel metamodel;
+    private final Integer stopAssociationFixingAtDepth;
 
     /**
      * Create new {@link EntityGraphAssociationFixer}.
      *
      * @param metamodel JPA metamodel
+     * @param stopAssociationFixingAtDepth depth at which to stop the association fixing algorithm. This
+     *                                     can be used to override the default behavior of traversing the whole
+     *                                     object graph.
      */
-    public EntityGraphAssociationFixer(Metamodel metamodel) {
+    public EntityGraphAssociationFixer(Metamodel metamodel, @Nullable Integer stopAssociationFixingAtDepth) {
         this.metamodel = metamodel;
+        this.stopAssociationFixingAtDepth = stopAssociationFixingAtDepth;
     }
 
     /**
@@ -76,11 +82,11 @@ public class EntityGraphAssociationFixer {
      */
     public void fixAssociations(Object entity) {
         Set<Object> visited = new HashSet<>();
-        fixAssociations0(entity, visited);
+        fixAssociations0(entity, visited, 0);
     }
 
-    private void fixAssociations0(Object entity, Set<Object> visited) {
-        if (visited.contains(entity)) {
+    private void fixAssociations0(Object entity, Set<Object> visited, int currentDepth) {
+        if (visited.contains(entity) || stopAssociationFixingAtDepth(currentDepth)) {
             return;
         }
         visited.add(entity);
@@ -110,13 +116,16 @@ public class EntityGraphAssociationFixer {
                     if (attr.isCollection()) {
                         PluralAttribute<?, ?, ?> pluralAttr = (PluralAttribute<?, ?, ?>) attr;
                         if (pluralAttr.getCollectionType() == PluralAttribute.CollectionType.MAP) {
-                            ((Map<?, ?>) attributeValue).forEach((key, value) -> fixAssociations0(value, visited));
+                            ((Map<?, ?>) attributeValue).forEach((key, value) -> fixAssociations0(
+                                value,
+                                visited,
+                                currentDepth + 1));
                         } else {
                             ((Collection<?>) attributeValue).forEach(collectionElement
-                                -> fixAssociations0(collectionElement, visited));
+                                -> fixAssociations0(collectionElement, visited, currentDepth + 1));
                         }
                     } else {
-                        fixAssociations0(attributeValue, visited);
+                        fixAssociations0(attributeValue, visited, currentDepth + 1);
                     }
                 }
             });
@@ -403,5 +412,9 @@ public class EntityGraphAssociationFixer {
             .filter(attr -> attr.getPersistentAttributeType() == MANY_TO_MANY)
             .filter(attr -> attributeName.equals(attr.getName()))
             .findAny();
+    }
+
+    private boolean stopAssociationFixingAtDepth(int depth) {
+        return stopAssociationFixingAtDepth != null && depth >= stopAssociationFixingAtDepth;
     }
 }

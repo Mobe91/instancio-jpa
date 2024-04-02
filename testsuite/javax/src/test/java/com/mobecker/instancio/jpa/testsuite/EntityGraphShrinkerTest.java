@@ -50,7 +50,7 @@ class EntityGraphShrinkerTest {
     @BeforeAll
     static void setup() {
         emf = Persistence.createEntityManagerFactory("EntityGraphShrinkerTestPu");
-        entityGraphShrinker = new EntityGraphShrinker(emf.getMetamodel());
+        entityGraphShrinker = new EntityGraphShrinker(emf.getMetamodel(), null);
     }
 
     @AfterAll
@@ -169,6 +169,23 @@ class EntityGraphShrinkerTest {
         assertThatNoException().isThrownBy(() -> entityGraphShrinker.shrink(entity));
         assertThat(entity.getId()).isNotNull();
         assertThat(entity.getNonInsertable()).isNull();
+    }
+
+    @Test
+    void stopShrinkingAtDepth() {
+        // Given
+        Order order = new Order();
+        order.setId(1L);
+        OrderItem orderItem = new OrderItem();
+        orderItem.setId(1L);
+        order.getOrderItems().add(orderItem);
+        EntityGraphShrinker entityGraphShrinker = new EntityGraphShrinker(emf.getMetamodel(), 0);
+
+        // When
+        entityGraphShrinker.shrink(order);
+
+        // Then
+        assertThat(order.getOrderItems()).hasSize(1);
     }
 
     @Entity

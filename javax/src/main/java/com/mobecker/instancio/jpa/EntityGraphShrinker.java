@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
@@ -53,14 +54,18 @@ public class EntityGraphShrinker {
     private static final Logger LOG = LoggerFactory.getLogger(EntityGraphShrinker.class);
 
     private final Metamodel metamodel;
+    private final Integer stopShrinkingAtDepth;
 
     /**
      * Create new {@link EntityGraphShrinker}.
      *
      * @param metamodel JPA metamodel
+     * @param stopShrinkingAtDepth depth at which to stop the shrinking algorithm. This can be used
+     *                             to override the default behavior of traversing the whole object graph.
      */
-    public EntityGraphShrinker(Metamodel metamodel) {
+    public EntityGraphShrinker(Metamodel metamodel, @Nullable Integer stopShrinkingAtDepth) {
         this.metamodel = metamodel;
+        this.stopShrinkingAtDepth = stopShrinkingAtDepth;
     }
 
     /**
@@ -72,14 +77,14 @@ public class EntityGraphShrinker {
     public void shrink(Object entity) {
         Objects.requireNonNull(entity, "Entity must not be null");
         Set<Object> visited = new HashSet<>();
-        shrink0(entity, visited);
+        shrink0(entity, visited, 0);
         if (!isValid(entity)) {
             throw new RuntimeException("Cannot shrink object graph to a persistable entity graph");
         }
     }
 
-    private void shrink0(Object node, Set<Object> visited) {
-        if (visited.contains(node)) {
+    private void shrink0(Object node, Set<Object> visited, int currentDepth) {
+        if (visited.contains(node) || stopShrinkingAtDepth(currentDepth)) {
             return;
         }
         visited.add(node);
@@ -90,7 +95,7 @@ public class EntityGraphShrinker {
                 return;
             }
             if (attr instanceof SingularAttribute<?, ?> && attr.getPersistentAttributeType() != BASIC) {
-                shrink0(attrValue, visited);
+                shrink0(attrValue, visited, currentDepth + 1);
                 if (!isValid((SingularAttribute<?, ?>) attr, attrValue)) {
                     LOG.debug("Assigning null to {} for node {}", attr, node);
                     setAttributeValue(node, attr, null);
@@ -103,7 +108,7 @@ public class EntityGraphShrinker {
                     Iterator<?> iterator = attrMap.values().iterator();
                     while (iterator.hasNext()) {
                         Object attrMapValue = iterator.next();
-                        shrink0(attrMapValue, visited);
+                        shrink0(attrMapValue, visited, currentDepth + 1);
                         if (!isValid(attrMapValue)) {
                             LOG.debug("Removing value {} from map {} at node {}", attrMapValue, attrMap, node);
                             iterator.remove();
@@ -115,7 +120,7 @@ public class EntityGraphShrinker {
                     Iterator<?> iterator = attrCollection.iterator();
                     while (iterator.hasNext()) {
                         Object attrCollectionElement = iterator.next();
-                        shrink0(attrCollectionElement, visited);
+                        shrink0(attrCollectionElement, visited, currentDepth + 1);
                         if (!isValid(attrCollectionElement)) {
                             LOG.debug("Removing element {} from collection {} at node {}",
                                 attrCollectionElement, pluralAttribute, node);
@@ -168,5 +173,9 @@ public class EntityGraphShrinker {
             || attribute.isOptional()
             || !isInsertable(attribute)
             || isHibernateTenantId(attribute);
+    }
+
+    private boolean stopShrinkingAtDepth(int depth) {
+        return stopShrinkingAtDepth != null && depth >= stopShrinkingAtDepth;
     }
 }

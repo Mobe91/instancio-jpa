@@ -177,6 +177,22 @@ Cat cat = Instancio.of(catModel)
     .create();
 ```
 
+## Using Instancio maxDepth
+
+Instancio-jpa's `jpaModel` builder provides a way to manually specify the maxDepth of the entity graph that will be
+generated.
+
+```java
+Model<Cat> catModel = jpaModel(Cat.class, jpaMetamodel).withMaxDepth(4).build();
+```
+
+If no maxDepth is specified instancio-jpa will attempt to detect the minimum depth required to yield a persistable 
+entity graph and will use this value as maxDepth.
+
+While this API is similar to Instancio's `withMaxDepth` it must not be confused. The usage of Instancio's native
+`withMaxDepth` in conjunction with instancio-jpa is not supported. In consequence  this means that overriding the 
+maxDepth from an instancio-jpa created Instancio `org.instancio.Model` is also not supported.
+
 ## Correctness of the JPA metamodel
 
 The JPA metamodel implementation of Hibernate turns out to be buggy and indeterministic when it comes to the nullability

@@ -83,16 +83,15 @@ public final class InstancioJpa {
 
         private final Class<T> entityClass;
         private final Metamodel metamodel;
-        private final EntityGraphShrinker entityGraphShrinker;
-        private final EntityGraphAssociationFixer entityGraphAssociationFixer;
         private Settings settings;
         private OnCompleteCallback<T> onCompleteCallback;
+        private Integer maxDepth;
+        private EntityGraphShrinker entityGraphShrinker;
+        private EntityGraphAssociationFixer entityGraphAssociationFixer;
 
         private Builder(Class<T> entityClass, Metamodel metamodel) {
             this.entityClass = entityClass;
             this.metamodel = metamodel;
-            this.entityGraphShrinker = new EntityGraphShrinker(metamodel);
-            this.entityGraphAssociationFixer = new EntityGraphAssociationFixer(metamodel);
         }
 
         /**
@@ -113,10 +112,33 @@ public final class InstancioJpa {
         }
 
         /**
+         * Similar to {@link org.instancio.InstancioApi#withMaxDepth(int)} sets the maxDepth for the JPA model
+         * builder. If no maxDepth is specified instancio-jpa will attempt to detect the minimum depth required to
+         * yield a persistable entity graph.
+         *
+         * <p>Specifying a maxDepth can be useful if large existing entity graphs are linked to the Instancio
+         * created graph during generation. Instancio-jpa can use this information to tune the graph sanitization
+         * logic to avoid unnecessary work and improve performance.
+         *
+         * <p>Design note:
+         * The optimal approach for halting graph sanitization would be to halt at Instancio's maxDepth + 1 depth.
+         * However, there is currently no API provided by Instancio to retrieve the effective maxDepth that was
+         * used to generate the object graph from inside the onComplete callback. So, this method is a best-effort
+         * approach that should be revisited once Instancio exposes the maxDepth.
+         *
+         * @param maxDepth maximum depth of the generated object graph
+         * @return InstancioJpa builder reference
+         * @since 2.0.0
+         */
+        public Builder<T> withMaxDepth(int maxDepth) {
+            this.maxDepth = maxDepth;
+            return this;
+        }
+
+        /**
          * A callback that gets invoked after an object has been fully populated.
          *
-         * <p/>
-         * Example:
+         * <p>Example:
          * <pre>{@code
          *     // Sets name field on all instances of Person to the specified value
          *     Model<Person> personModel = jpaModel(Person.class, metamodel).onComplete().build();
@@ -151,10 +173,18 @@ public final class InstancioJpa {
                 instancioApi.withNullable(JpaOptionalAttributeSelector.jpaOptionalAttribute(metamodel));
             }
 
-            EntityGraphMinDepthPredictor entityGraphMinDepthPredictor =
-                new EntityGraphMinDepthPredictor(metamodel);
-            int minDepth = entityGraphMinDepthPredictor.predictRequiredDepth(entityClass);
-            instancioApi.withMaxDepth(minDepth);
+            final int effectiveMaxDepth;
+            if (maxDepth == null) {
+                EntityGraphMinDepthPredictor entityGraphMinDepthPredictor =
+                    new EntityGraphMinDepthPredictor(metamodel);
+                effectiveMaxDepth = entityGraphMinDepthPredictor.predictRequiredDepth(entityClass);
+            } else {
+                effectiveMaxDepth = maxDepth;
+            }
+            instancioApi.withMaxDepth(effectiveMaxDepth);
+
+            entityGraphShrinker = new EntityGraphShrinker(metamodel, effectiveMaxDepth + 1);
+            this.entityGraphAssociationFixer = new EntityGraphAssociationFixer(metamodel, effectiveMaxDepth + 1);
 
             return instancioApi
                 .onComplete(root(), (root) -> {

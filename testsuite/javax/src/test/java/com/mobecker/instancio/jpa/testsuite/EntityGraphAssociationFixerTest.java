@@ -50,7 +50,7 @@ class EntityGraphAssociationFixerTest {
     @BeforeAll
     static void setup() {
         emf = Persistence.createEntityManagerFactory("EntityGraphAssociationFixerTestPu");
-        entityGraphAssociationFixer = new EntityGraphAssociationFixer(emf.getMetamodel());
+        entityGraphAssociationFixer = new EntityGraphAssociationFixer(emf.getMetamodel(), null);
     }
 
     @AfterAll
@@ -259,6 +259,29 @@ class EntityGraphAssociationFixerTest {
         assertThat(holder.assoc2Set)
             .hasSize(1)
             .allSatisfy(assoc2 -> assertThat(assoc2).isExactlyInstanceOf(MultiOneToManyHolderAssoc2.class));
+    }
+
+
+    @Test
+    void stopShrinkingAtDepth() {
+        // Given
+        Order order = new Order();
+        order.setId(1L);
+        OrderItem orderItem = new OrderItem();
+        orderItem.setId(1L);
+        order.getOrderItems().add(orderItem);
+        EntityGraphAssociationFixer entityGraphAssociationFixer = new EntityGraphAssociationFixer(emf.getMetamodel(), 0);
+
+        // When
+        entityGraphAssociationFixer.fixAssociations(order);
+
+        // Then
+        assertThat(order.getOrderItems())
+            .hasSize(1)
+            .allSatisfy(i -> {
+                assertThat(i.getOrderForSet()).isNull();
+                assertThat(i.getOrderForMap()).isNull();
+            });
     }
 
     @Entity

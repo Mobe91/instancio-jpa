@@ -38,7 +38,7 @@ public class EntityGraphShrinkerTest {
     @BeforeAll
     static void setup() {
         emf = Persistence.createEntityManagerFactory("EntityGraphShrinkerTestPu");
-        entityGraphShrinker = new EntityGraphShrinker(emf.getMetamodel());
+        entityGraphShrinker = new EntityGraphShrinker(emf.getMetamodel(), null);
     }
 
     @Test
