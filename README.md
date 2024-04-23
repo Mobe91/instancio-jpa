@@ -114,6 +114,41 @@ Model<Cat> catModel = jpaModel(Cat.class, jpaMetamodel)
     .build();
 ```
 
+## Interoperability with Instancio's bean validation support
+
+Instancio has [experimental support for bean validation](https://www.instancio.org/user-guide/#bean-validation). While
+it is possible to enable Instancio's bean validation support users must be aware that the 
+`org.instancio.spi.InstancioServiceProvider.GeneratorProvider`s contributed by instancio-jpa will take precedence over
+Instancio's bean validation handling. This can result in bean validation annotations not being considered by Instancio
+in certain situations. For example:
+
+```
+@Entity
+public class Cat {
+    @Id
+    private Long id;
+    @Size(min = 8, max = 50)
+    @Column(length = 50)
+    private String name;
+}
+```
+
+In above example the column length handling of instancio-jpa will take precedence and the `@Size` annotation will be
+disregarded. This can result in names being generated that are shorter than 8 characters. Users may use the following
+workarounds in these situations:
+
+* Provide a custom `org.instancio.spi.InstancioServiceProvider.GeneratorProvider` to override instancio-jpa and to
+  manually generated valid values for a property.
+* Use the `jpa.generatorProviderExclusions` configuration key supported by instancio-jpa to exclude a specific 
+  properties from being handled by instancio-jpa.
+
+  `instancio.properties`.
+  ```properties
+  jpa.generatorProviderExclusions=fqn.Cat#name,\
+    fqn.Book#author
+  ```
+
+
 ## Using Instancio onComplete callbacks
 
 Instancio-jpa uses Instancio's onComplete callback in combination with the `org.instancio.Select.root()` TargetSelector 
