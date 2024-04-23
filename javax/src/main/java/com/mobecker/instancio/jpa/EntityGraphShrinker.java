@@ -133,6 +133,25 @@ public class EntityGraphShrinker {
 
     private boolean isValid(SingularAttribute<?, ?> attribute, Object attributeValue) {
         if (attribute.getPersistentAttributeType() != BASIC && attributeValue != null) {
+            return isValid(attributeValue);
+        }
+
+        return isValueValidForSingularAttribute(attribute, attributeValue);
+    }
+
+    private boolean isValid(Object node) {
+        ManagedType<?> managedType = metamodel.managedType(node.getClass());
+        return managedType.getAttributes().stream()
+            .filter(attr -> attr instanceof SingularAttribute<?, ?>)
+            .map(SingularAttribute.class::cast)
+            .allMatch(attr -> {
+                Object attrValue = resolveAttributeValue(node, attr);
+                return isValid0(attr, attrValue);
+            });
+    }
+
+    private static boolean isValid0(SingularAttribute<?, ?> attribute, Object attributeValue) {
+        if (attribute.getPersistentAttributeType() != BASIC && attributeValue != null) {
             // We return true here and do not perform a deep validity check on the attribute value. This is
             // sufficient because the shrinking algorithm works backwards from the "leaves" of the graph to the
             // root and checks the validity of attribute values at each level. So the validity of a non-null
@@ -141,18 +160,6 @@ public class EntityGraphShrinker {
         }
 
         return isValueValidForSingularAttribute(attribute, attributeValue);
-    }
-
-    private boolean isValid(Object node) {
-        ManagedType<?> managedType = metamodel.managedType(node.getClass());
-        return managedType.getAttributes().stream().allMatch(attr -> {
-            Object attrValue = resolveAttributeValue(node, attr);
-            if (attr instanceof SingularAttribute<?, ?>) {
-                return isValid((SingularAttribute<?, ?>) attr, attrValue);
-            } else {
-                return true;
-            }
-        });
     }
 
     private static boolean isValueValidForSingularAttribute(SingularAttribute<?, ?> attribute, Object attributeValue) {
