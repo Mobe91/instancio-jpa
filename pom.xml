@@ -89,7 +89,7 @@
         <version.maven-surefire-plugin>3.1.0</version.maven-surefire-plugin>
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
         <version.maven-gpg-plugin>3.1.0</version.maven-gpg-plugin>
-        <version.maven-checkstyle-plugin>3.3.0</version.maven-checkstyle-plugin>
+        <version.maven-checkstyle-plugin>3.3.1</version.maven-checkstyle-plugin>
         <version.build-helper-maven-plugin>3.4.0</version.build-helper-maven-plugin>
         <version.license-maven-plugin>4.2</version.license-maven-plugin>
     </properties>
@@ -175,7 +175,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${version.maven-javadoc-plugin}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

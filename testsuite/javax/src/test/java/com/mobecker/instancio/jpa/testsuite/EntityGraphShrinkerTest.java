@@ -59,6 +59,23 @@ class EntityGraphShrinkerTest {
     }
 
     @Test
+    void singular() {
+        // Given
+        Order order1 = new Order();
+        Order order2 = new Order();
+        order2.setDescription(null);
+        OrderItem orderItem = new OrderItem();
+        orderItem.setOrder(order1);
+        orderItem.setOptionalOrder(order2);
+
+        // When
+        entityGraphShrinker.shrink(orderItem);
+
+        // Then
+        assertThat(orderItem.getOptionalOrder()).isNull();
+    }
+
+    @Test
     void oneToMany_unset() {
         // Given
         Order order = new Order();
@@ -164,6 +181,8 @@ class EntityGraphShrinkerTest {
         private Set<OrderItem> orderItems = new HashSet<>(0);
         @OneToMany
         private Map<Long, OrderItem> orderItemsById = new HashMap<>(0);
+        @Column(nullable = false)
+        private String description = "some description";
     }
 
     @Entity
@@ -174,6 +193,8 @@ class EntityGraphShrinkerTest {
         private Long id;
         @ManyToOne(optional = false)
         private Order order;
+        @ManyToOne
+        private Order optionalOrder;
     }
 
     @Entity
