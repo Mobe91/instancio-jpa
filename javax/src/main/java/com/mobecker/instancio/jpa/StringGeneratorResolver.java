@@ -31,12 +31,18 @@ import org.instancio.generators.Generators;
  */
 public class StringGeneratorResolver implements JpaAttributeGeneratorResolver {
 
+    private final int maxLength;
+
+    public StringGeneratorResolver(Integer maxLength) {
+        this.maxLength = maxLength == null ? Integer.MAX_VALUE : maxLength;
+    }
+
     @Override
     public GeneratorSpec<?> getGenerator(
         Node node, Generators generators, Attribute<?, ?> attribute, GeneratorResolverContext context) {
         Integer columnLength;
         if (isStringTyped(attribute) && (columnLength = getColumnLength(attribute)) != null) {
-            return generators.string().maxLength(columnLength);
+            return generators.string().maxLength(Math.min(columnLength, maxLength));
         }
         return null;
     }
