@@ -29,6 +29,8 @@ import javax.persistence.metamodel.Metamodel;
 import org.instancio.Node;
 import org.instancio.generator.Generator;
 import org.instancio.generator.GeneratorSpec;
+import org.instancio.settings.Keys;
+import org.instancio.settings.Settings;
 import org.instancio.spi.InstancioServiceProvider;
 import org.instancio.spi.ServiceProviderContext;
 import org.slf4j.Logger;
@@ -43,11 +45,7 @@ import org.slf4j.LoggerFactory;
 public class InstancioJpaServiceProvider implements InstancioServiceProvider {
     private static final Logger LOG = LoggerFactory.getLogger(InstancioJpaServiceProvider.class);
 
-    private static final List<JpaAttributeGeneratorResolver> JPA_ATTRIBUTE_GENERATOR_RESOLVERS = Arrays.asList(
-        // Order matters
-        new UniqueValueGeneratorResolver(),
-        new StringGeneratorResolver()
-    );
+    private List<JpaAttributeGeneratorResolver> jpaAttributeGeneratorResolvers;
 
     private volatile Metamodel metamodel;
     private volatile String[] generatorProviderExclusions;
@@ -55,11 +53,17 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
 
     @Override
     public void init(ServiceProviderContext context) {
-        this.metamodel = context.getSettings().get(JpaKeys.METAMODEL);
+        Settings settings = context.getSettings();
+        this.metamodel = settings.get(JpaKeys.METAMODEL);
         this.generatorProviderExclusions = convertGeneratorProviderExclusions(
-            context.getSettings().get(JpaKeys.GENERATOR_PROVIDER_EXCLUSIONS));
-        Boolean generatorProvidersEnabled = context.getSettings().get(JpaKeys.ENABLE_GENERATOR_PROVIDERS);
+            settings.get(JpaKeys.GENERATOR_PROVIDER_EXCLUSIONS));
+        Boolean generatorProvidersEnabled = settings.get(JpaKeys.ENABLE_GENERATOR_PROVIDERS);
         this.generatorProvidersEnabled = generatorProvidersEnabled != null && generatorProvidersEnabled;
+        this.jpaAttributeGeneratorResolvers = Arrays.asList(
+            // Order matters
+            new UniqueValueGeneratorResolver(),
+            new StringGeneratorResolver(settings.get(Keys.STRING_MAX_LENGTH))
+        );
     }
 
     private static String[] convertGeneratorProviderExclusions(@Nullable String rawExclusions) {
@@ -85,7 +89,7 @@ public class InstancioJpaServiceProvider implements InstancioServiceProvider {
                 }
 
                 Attribute<?, ?> idAttr = entityType.getAttribute(field.getName());
-                for (JpaAttributeGeneratorResolver jpaAttributeGeneratorResolver : JPA_ATTRIBUTE_GENERATOR_RESOLVERS) {
+                for (JpaAttributeGeneratorResolver jpaAttributeGeneratorResolver : jpaAttributeGeneratorResolvers) {
                     GeneratorSpec<?> generator = jpaAttributeGeneratorResolver.getGenerator(
                         node, generators, idAttr, () -> contextualGenerators);
                     if (generator != null) {
