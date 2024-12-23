@@ -12,7 +12,7 @@ the javax or the jakarta namespace.
 
 ```xml
 <properties>
-    <version.instancio-jpa>2.0.0</version.instancio-jpa>
+    <version.instancio-jpa>2.0.2</version.instancio-jpa>
 </properties>
 ```
 
